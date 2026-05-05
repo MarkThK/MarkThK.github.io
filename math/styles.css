@@ -1,0 +1,34 @@
+/* MATH SECTION */
+
+.math-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+.math-section {
+  margin-bottom: 40px;
+}
+
+.math-section h2 {
+  border-left: 4px solid #38bdf8;
+  padding-left: 10px;
+}
+
+.math-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.math-section li {
+  margin: 10px 0;
+}
+
+.math-section a {
+  text-decoration: none;
+  color: #e2e8f0;
+}
+
+.math-section a:hover {
+  color: #38bdf8;
+}
