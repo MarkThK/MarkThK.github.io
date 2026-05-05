@@ -26,5 +26,25 @@
 
 </main>
 
+<main class="blog-container" id="blog"></main>
+
+<script src="posts.js"></script>
+<script>
+  const container = document.getElementById("blog");
+
+  posts.forEach(post => {
+    const el = document.createElement("article");
+    el.className = "post-preview";
+
+    el.innerHTML = `
+      <h2><a href="${post.link}">${post.title}</a></h2>
+      <p class="post-meta">${post.date}</p>
+      <p>${post.description}</p>
+    `;
+
+    container.appendChild(el);
+  });
+</script>
+  
 </body>
 </html>
