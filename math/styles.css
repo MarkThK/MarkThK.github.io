@@ -1,34 +1,108 @@
-/* MATH SECTION */
-
-.math-container {
-  max-width: 800px;
-  margin: auto;
-  padding: 40px 20px;
+/* ===== BASE ===== */
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  margin: 0;
+  background: #f8fafc;
+  color: #1f2937;
+  line-height: 1.6;
 }
 
-.math-section {
+/* ===== HERO ===== */
+.hero {
+  text-align: center;
+  padding: 70px 20px 50px;
+  background: linear-gradient(135deg, #0f172a, #1e3a8a);
+  color: white;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  letter-spacing: 0.5px;
+}
+
+.hero .subtitle {
+  margin-top: 10px;
+  color: #cbd5e1;
+  font-size: 1.1rem;
+}
+
+/* ===== MAIN LAYOUT ===== */
+.math-container {
+  max-width: 850px;
+  margin: -30px auto 60px;
+  padding: 20px;
+}
+
+/* intro paragraph */
+.math-container > p {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   margin-bottom: 40px;
 }
 
-.math-section h2 {
-  border-left: 4px solid #38bdf8;
-  padding-left: 10px;
+/* ===== SECTIONS ===== */
+.math-section {
+  background: white;
+  padding: 25px 25px;
+  margin-bottom: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.15s ease;
 }
 
+.math-section:hover {
+  transform: translateY(-2px);
+}
+
+.math-section h2 {
+  margin-top: 0;
+  border-left: 4px solid #38bdf8;
+  padding-left: 12px;
+  font-size: 1.4rem;
+}
+
+/* subtitle inside sections */
+.math-section .subtitle {
+  color: #6b7280;
+  margin-top: -10px;
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+}
+
+/* ===== LISTS ===== */
 .math-section ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .math-section li {
-  margin: 10px 0;
+  margin: 12px 0;
 }
 
+/* ===== LINKS (IMPROVED VISIBILITY) ===== */
 .math-section a {
+  display: inline-block;
+  color: #2563eb;
   text-decoration: none;
-  color: #635D5B;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
 .math-section a:hover {
-  color: #38bdf8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  text-align: center;
+  padding: 30px;
+  color: #94a3b8;
+  font-size: 0.9rem;
 }
