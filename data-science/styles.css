@@ -1,5 +1,18 @@
 /* BLOG LAYOUT */
 
+body {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: #e2e8f0;
+}
+
+/* Smooth feel */
+* {
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
 .blog-container {
   max-width: 800px;
   margin: auto;
