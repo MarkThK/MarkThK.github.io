@@ -1,6 +1,6 @@
 const posts = [
   {
-    title: "Tomato Leaves and Computer Vision for Food Security.",
+    title: "Tomato Plant Disease and Computer Vision for Food Security",
     date: "May 2026",
     description: "My first project in computer vision. (Part 1)",
     link: "post1.html"
