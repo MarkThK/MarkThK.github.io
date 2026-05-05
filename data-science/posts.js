@@ -1,10 +1,10 @@
 const posts = [
   {
-    title: "🚀 Το τρέχον project μου",
-    date: "Μάιος 2026",
-    description: "Μια εισαγωγή στο project που δουλεύω αυτή τη στιγμή...",
+    title: "Tomato Leaves and Computer Vision for Food Security.",
+    date: "May 2026",
+    description: "My first project in computer vision. (Part 1)",
     link: "post1.html"
-  },
+  }//,
   //{
   //  title: "📊 Ανάλυση δεδομένων: πρώτες σκέψεις",
   //  date: "Απρίλιος 2026",
