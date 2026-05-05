@@ -1,0 +1,32 @@
+/* BLOG LAYOUT */
+
+.blog-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+.post-preview {
+  margin-bottom: 50px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #334155;
+}
+
+.post-preview h2 {
+  margin-bottom: 5px;
+}
+
+.post-preview a {
+  text-decoration: none;
+  color: #e2e8f0;
+}
+
+.post-preview a:hover {
+  color: #38bdf8;
+}
+
+.post-meta {
+  font-size: 0.9em;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
