@@ -13,10 +13,32 @@ body {
   transition: all 0.2s ease;
 }
 
+.hero {
+  text-align: center;
+  padding: 120px 20px 80px;
+  background: radial-gradient(circle at top, rgba(56,189,248,0.15), transparent 60%);
+}
+
+.hero h1 {
+  font-size: 3.2em;
+  letter-spacing: -1px;
+}
+
 .blog-container {
   max-width: 800px;
   margin: auto;
   padding: 40px 20px;
+}
+
+.card {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.card:hover {
+  transform: translateY(-6px) scale(1.01);
 }
 
 .post-preview {
