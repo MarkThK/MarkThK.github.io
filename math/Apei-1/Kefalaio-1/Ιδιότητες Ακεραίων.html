@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Θεμελιώδεις Ιδιότητες των Ακεραίων</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onload="initialRender()"></script>
+
+    <style>
+        /* --- CSS VARIABLES & THEME (Amber/Warm Theme) --- */
+        :root {
+            --primary-color: #d97706; 
+            --primary-hover: #b45309;
+            --accent-color: #78350f; 
+            
+            --card-bg: #ffffff;
+            --text-main: #292524; 
+            --text-muted: #78716c; 
+            
+            --info-bg: #f0f9ff;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1;    
+            
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42;
+            /* Simple pattern background to match the aesthetic */
+            background-image: radial-gradient(#444 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 900px; 
+            min-height: 700px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- SLIDE COUNTER & PROGRESS --- */
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 0.85rem; font-weight: 500; 
+            color: rgba(0, 0, 0, 0.3); 
+            background: transparent; 
+            padding: 4px 8px;
+            z-index: 20;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .content-area {
+            padding: 3rem 4rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide { display: none; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .slide.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { 
+            font-family: "Georgia", "Times New Roman", serif;
+            font-size: 2.5rem; 
+            margin-bottom: 0.75rem; 
+            color: var(--accent-color);
+            letter-spacing: -0.02em;
+        }
+        
+        .tagline { 
+            font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.15em; 
+            font-size: 0.8rem; font-weight: 700; color: var(--primary-color); 
+            margin-bottom: 1rem; display: block; 
+        }
+
+        p { 
+            font-size: 1.2rem; line-height: 1.6; color: var(--text-main); 
+            margin-bottom: 1.2rem; opacity: 0.9;
+        }
+
+        /* --- BLOCKS --- */
+        .check-list { list-style: none; padding: 0; margin: 1.5rem 0; }
+        .check-list li {
+            position: relative; padding-left: 2.5rem; margin-bottom: 1rem;
+            font-size: 1.2rem; color: var(--text-main); line-height: 1.6;
+        }
+        .check-list li::before {
+            content: "✔"; color: #1e3a8a; font-size: 1.4rem;
+            position: absolute; left: 0; top: 0.1rem;
+        }
+
+        .exercise-block {
+            background-color: #f8fafc; border: 2px dashed #cbd5e1;
+            padding: 1.5rem; border-radius: 12px; margin-top: 2rem;
+        }
+        .exercise-title {
+            font-weight: 700; text-transform: uppercase; font-size: 0.9rem;
+            color: var(--text-muted); margin-bottom: 0.5rem; display: block;
+        }
+
+        /* --- TOOLTIP STYLE (Icons) --- */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 6px; vertical-align: middle; }
+        
+        .info-badge { 
+            display: inline-flex; justify-content: center; align-items: center; 
+            width: 22px; height: 22px; border-radius: 50%; 
+            background-color: #e0f2fe; color: #0369a1; 
+            font-family: sans-serif; font-weight: bold; font-size: 14px; 
+            cursor: pointer; transition: all 0.2s ease; 
+            border: 1px solid #bae6fd;
+        }
+
+        .tooltip-container:hover .info-badge { 
+            background-color: #0284c7; color: white; border-color: #0284c7; 
+            transform: scale(1.1); 
+        }
+
+        .tooltip-text { 
+            visibility: hidden; width: 300px; 
+            background-color: #333; color: #fff; 
+            text-align: left; border-radius: 8px; padding: 12px; 
+            position: absolute; z-index: 100; 
+            bottom: 150%; left: 50%; margin-left: -150px; 
+            opacity: 0; transition: opacity 0.3s; 
+            font-size: 0.95rem; line-height: 1.4; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); 
+            font-family: -apple-system, sans-serif; font-weight: normal; 
+            pointer-events: none;
+        }
+        .tooltip-text::after { 
+            content: ""; position: absolute; top: 100%; left: 50%; 
+            margin-left: -5px; border-width: 5px; border-style: solid; 
+            border-color: #333 transparent transparent transparent; 
+        }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        /* --- CANVAS WRAPPER --- */
+        .canvas-wrapper {
+            width: 100%; display: flex; justify-content: center; margin: 1.5rem 0;
+        }
+        canvas {
+            background: white; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 100%; height: auto; border: 1px solid #e7e5e4;
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-footer { padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4; display: flex; justify-content: space-between; align-items: center; background: #fffcfc; margin-top: auto; }
+        .nav-control { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 12px 18px; color: var(--text-muted); border-radius: 8px; transition: all 0.2s; }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control.hidden { visibility: hidden; pointer-events: none; }
+        .arrow-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+        .nav-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; font-weight: 700; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="slide-counter" id="slideCounter">1 / 8</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <span class="tagline">Εισαγωγή</span>
+                <h2>Θεμελιώδεις Ιδιότητες των Ακεραίων</h2>
+                <p>Έχουμε ήδη δει ότι οι ακέραιοι υπακούουν στην αρχή ελαχίστου: Κάθε υποσύνολο του $\mathbb{N}$ έχει ένα ελάχιστο στοιχείο.</p>
+                <p>Αυτήν την ιδιότητα την παίρνουμε δεδομένη (σαν αξίωμα) και άρα δεν την αποδεικνύουμε.</p>
+                <p>Τώρα θα αποδείξουμε δύο άλλες πολύ βασικές και χρήσιμες ιδιότητες των ακέραιων:</p>
+                <ul class="check-list">
+                    <li>Το $\mathbb{N}$ δεν είναι άνω φραγμένο.</li>
+                    <li>Για κάθε πραγματικό αριθμό $\alpha$ "πλαισιώνεται" από ακέραιους, ως εξής: Υπάρχει κάποιος ακέραιος $n$ τέτοιος ώστε $n \leq \alpha < n+1$.</li>
+                </ul>
+            </div>
+
+            <div class="slide" id="slide2">
+                <span class="tagline">Η Πρόταση</span>
+                <h2>To $\mathbb{N}$ δεν είναι άνω φραγμένο</h2>
+                <p>Πώς μπορούμε να αποδείξουμε ότι το $\mathbb{N}$ δεν είναι άνω φραγμένο;</p>
+                <p>Αρχικά δεν έχουμε τίποτα πέρα από το $\mathbb{N}$ με το οποίο να δουλέψουμε.</p>
+                <p>Ο μόνος τρόπος να προχωρήσουμε είναι να στραφούμε στην απαγωγή σε άτοπο.</p>
+                <p>Υποθέτουμε ότι το $\mathbb{N}$ έχει ένα άνω φράγμα.</p>
+            </div>
+
+            <div class="slide" id="slide3">
+                <span class="tagline">Προσπάθεια</span>
+                <h2>Προσπάθεια</h2>
+                <p>Θα θέλαμε να δείξουμε ότι υπάρχει κάποιος ακέραιος που είναι μεγαλύτερος από αυτό το άνω φράγμα.</p>
+                <p><strong>&rarr; Άτοπο</strong></p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="canvas_plot1_a"></canvas>
+                </div>
+
+                <p>Για να το κάνουμε αυτό, θα ξεκινούσαμε από κάποιον ακέραιο και θα προχωρούσαμε στους επόμενους ακέραιους, μέχρι να ξεπεράσουμε το άνω φράγμα.</p>
+                <p>Και έτσι θα καταλήγαμε σε έναν ακέραιο που είναι μεγαλύτερος από το άνω φράγμα του $\mathbb{N}$, που είναι άτοπο.</p>
+            </div>
+
+            <div class="slide" id="slide4">
+                <span class="tagline">Βελτίωση</span>
+                <h2>Βελτίωση</h2>
+                <p>Ωστόσο, αυτό είναι κάπως δύσκολο να το κάνουμε, γιατί δεν ξέρουμε την απόσταση μεταξύ του ακέραιου από τον οποίο ξεκινάμε και του άνω φράγματος που θέλουμε να ξεπεράσουμε.</p>
+                <p>Με άλλα λόγια, δεν ξέρουμε πόσα βήματα πρέπει να κάνουμε για να προσπεράσουμε το άνω φράγμα.</p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="canvas_plot1_b"></canvas>
+                </div>
+
+                <p>Ένας πιο απλός τρόπος, είναι να προσπεράσουμε κάποιο πιο κοντινό άνω φράγμα.</p>
+                <p>Και το άνω φράγμα που είναι πιο κοντά στα στοιχεία του συνόλου είναι το supremum!</p>
+                <p>Επομένως, το νέο σχέδιό μας για την απόδειξη είναι να θεωρήσουμε το supremum, μετά να βρούμε έναν ακέραιο που είναι πολύ κοντά στο supremum.</p>
+                <p>Προσθέτοντας +1 σε αυτόν τον ακέραιο, θα βρούμε έναν άλλο ακέραιο που θα είναι πάνω από το supremum.</p>
+            </div>
+
+            <div class="slide" id="slide5">
+                <span class="tagline">Αυστηροποίηση</span>
+                <h2>Αυστηροποίηση</h2>
+                <p>Ας δούμε το τελευταίο βήμα λίγο πιο προσεκτικά:</p>
+                <p>Ο χαρακτηρισμός του supremum μπορεί να μας δώσει έναν ακέραιο που είναι όσο κοντά θέλουμε στο supremum (συγκεκριμένα, $\epsilon$-κοντά).</p>
+                <p>Ποιο $\epsilon$ πρέπει να επιλέξουμε;</p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="canvas_plot2"></canvas>
+                </div>
+
+                <p>Αν επιλέξουμε $\epsilon = 1$, αυτό αρκεί!</p>
+                <p>Όπου και να βρίσκεται ο ακέραιος $n$ που μας δίνει ο χαρακτηρισμός, το $n+1$ θα είναι μεγαλύτερο από το supremum!</p>
+                
+                <div class="exercise-block">
+                    <span class="exercise-title">Άσκηση</span>
+                    Αν θες γράψε την αυστηρή απόδειξη. Με την συμπύκνωση που επιφέρει η χρήση του μαθηματικού κειμένου, μπορεί να βγει σε 3 μόνο γραμμές!
+                </div>
+            </div>
+
+            <div class="slide" id="slide6">
+                <span class="tagline">Ακέραιο Μέρος</span>
+                <h2>Ακέραιο Μέρος</h2>
+                <p>Στη συνέχεια, θέλουμε να αποδείξουμε ότι κάθε πραγματικός αριθμός $x$ πλαισιώνεται από δύο διαδοχικούς ακέραιους:</p>
+                <p>Υπάρχει κάποιος ακέραιος $n$ τέτοιος ώστε $n \leq x < n+1$.</p>
+                <p>Ο $n$ είναι ο ακέραιος που προκύπτει αν αγνοήσουμε τα δεκαδικά ψηφία του $x$ και κρατήσουμε μόνο ό,τι υπάρχει πριν την υποδιαστολή.</p>
+                <p>Γι' αυτόν τον λόγο, ο $n$ λέγεται το ακέραιο μέρος του $x$.</p>
+            </div>
+
+            <div class="slide" id="slide7">
+                <span class="tagline">Πώς αποδεικνύουμε την ύπαρξη</span>
+                <h2>Πώς αποδεικνύουμε την ύπαρξη</h2>
+                <p>Μια προσέγγιση για να αιτιολογήσουμε αυτήν την "πλαισίωση" του $x$ από ακέραιους είναι ο εξής:</p>
+                <p>Να ξεκινήσουμε από κάποιον ακέραιο που είναι μεγαλύτερος από τον $x$ και να κινηθούμε προς τα αριστερά, μέχρι να βρούμε τον μικρότερο ακέραιο που υπερβαίνει το $x$.</p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="canvas_plot3"></canvas>
+                </div>
+
+                <p>Τότε ο $n-1$ θα είναι το ακέραιο μέρος του $x$. 
+                    <span class="tooltip-container">
+                        <span class="info-badge">?</span>
+                        <span class="tooltip-text">Γιατί ο $n-1$ θα είναι μικρότερος από τον $x$;</span>
+                    </span>
+                </p>
+            </div>
+
+            <div class="slide" id="slide8">
+                <span class="tagline">Αυστηροποίηση</span>
+                <h2>Αυστηροποίηση</h2>
+                <p>Θέλουμε να θεωρήσουμε λοιπόν το σύνολο των ακεραίων που είναι μεγαλύτεροι από το $x$.</p>
+                <p>Χρησιμοποιώντας την αρχή ελαχίστου, μπορούμε να αποδείξουμε ότι το σύνολο έχει ελάχιστο στοιχείο, αρκεί να μην είναι κενό!
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Η απόδειξη αυτή γίνεται ξεχωριστά σε ένα Λήμμα.</span>
+                    </span>
+                </p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="canvas_plot4"></canvas>
+                </div>
+
+                <p>Το ελάχιστο στοιχείο το ονομάζουμε $n$.</p>
+                <p>Τότε το $n-1$ είναι μικρότερο ή ίσο του $x$, αφού δεν ανήκει στο σύνολο.
+                    <span class="tooltip-container">
+                        <span class="info-badge">?</span>
+                        <span class="tooltip-text">Γιατί δεν ανήκει στο σύνολο;</span>
+                    </span>
+                </p>
+                <p>Έτσι, έχουμε ότι $n-1 \leq x < n = (n-1)+1$ και άρα το $n-1$ είναι το ακέραιο μέρος του $x$.</p>
+            </div>
+
+        </div> 
+        
+        <div class="nav-footer">
+            <button class="nav-control nav-prev hidden" id="prevBtn" onclick="navigate(-1)">
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span class="nav-label" id="prevLabel">Πίσω</span>
+            </button>
+
+            <button class="nav-control nav-next" id="nextBtn" onclick="navigate(1)">
+                <span class="nav-label" id="nextLabel">Επόμενο</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 8;
+
+        // Slide Titles for navigation
+        const slideLabels = { 
+            1: "Εισαγωγή",
+            2: "Η Πρόταση", 
+            3: "Προσπάθεια", 
+            4: "Βελτίωση", 
+            5: "Αυστηροποίηση",
+            6: "Ακέραιο Μέρος",
+            7: "Ύπαρξη",
+            8: "Αυστηροποίηση"
+        };
+
+        function initialRender() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        function navigate(direction) {
+            currentSlide += direction;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            const progress = document.getElementById('progressFill');
+            progress.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevLabel = document.getElementById('prevLabel');
+            const nextLabel = document.getElementById('nextLabel');
+            const slideCounter = document.getElementById('slideCounter');
+
+            prevBtn.classList.toggle('hidden', currentSlide === 1);
+            nextBtn.classList.toggle('hidden', currentSlide === totalSlides);
+
+            if (currentSlide > 1) prevLabel.textContent = slideLabels[currentSlide - 1];
+            if (currentSlide < totalSlides) nextLabel.textContent = slideLabels[currentSlide + 1];
+            
+            slideCounter.textContent = `${currentSlide} / ${totalSlides}`;
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        // --- CANVAS DRAWING LOGIC ---
+
+        function setupCanvas(canvasId, h) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const width = 800; 
+            const height = h || 250;
+            
+            // Set styles for CSS scaling
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            return { ctx, width, height };
+        }
+
+        // --- PLOT 1: Natural Numbers with Upper Bound ---
+        function drawPlot1(canvasId) {
+            const setup = setupCanvas(canvasId, 250);
+            if (!setup) return;
+            const { ctx, width, height } = setup;
+            const centerY = height / 2;
+
+            var startX = 50;
+            var step = 60; 
+            var radius = 8; 
+
+            var numSubset = 8;
+            var maxX_subset = startX + (numSubset - 1) * step;
+            var boundX = maxX_subset + step * 2.5; 
+            var numExtension = 3; 
+            var startX_extension = startX + numSubset * step;
+            var maxX_extension = startX_extension + (numExtension - 1) * step;
+            var endLineX = maxX_extension + 80; 
+
+            // Draw
+            ctx.beginPath();
+            ctx.moveTo(startX - 30, centerY);
+            ctx.lineTo(endLineX, centerY);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = "blue";
+            for (var i = 0; i < numSubset; i++) {
+                var x = startX + i * step;
+                ctx.beginPath();
+                ctx.arc(x, centerY, radius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            ctx.fillStyle = "rgba(173, 216, 230, 0.6)"; 
+            for (var i = 0; i < numExtension; i++) {
+                var x = startX_extension + i * step;
+                ctx.beginPath();
+                ctx.arc(x, centerY, radius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(boundX, centerY - 50);
+            ctx.lineTo(boundX, centerY + 50);
+            ctx.strokeStyle = "red";
+            ctx.stroke();
+
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "red";
+            ctx.textAlign = "center";
+            ctx.fillText("Άνω Φράγμα", boundX, centerY - 60);
+        }
+
+        // --- PLOT 2: Supremum Approximation ---
+        function drawPlot2(canvasId) {
+            const setup = setupCanvas(canvasId, 300);
+            if (!setup) return;
+            const { ctx, width, height } = setup;
+            
+            const PADDING = 80;
+            const Y_AXIS = height / 2; 
+
+            const SUP = 5.0;
+            const EPSILON = 1.0; 
+            const BOUNDARY = SUP - EPSILON;
+            const ELEMENT_VAL = SUP - 0.7; 
+
+            const MIN_X = 3.5;
+            const MAX_X = 5.5;
+
+            function toPixelX(val) {
+                const range = MAX_X - MIN_X;
+                const pixelRange = width - (PADDING * 2);
+                return PADDING + ((val - MIN_X) / range) * pixelRange;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(PADDING - 20, Y_AXIS);
+            ctx.lineTo(width - PADDING + 20, Y_AXIS);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(width - PADDING + 20, Y_AXIS);
+            ctx.lineTo(width - PADDING + 10, Y_AXIS - 5);
+            ctx.lineTo(width - PADDING + 10, Y_AXIS + 5);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+
+            const pxSup = toPixelX(SUP);
+            const pxBound = toPixelX(BOUNDARY);
+            const pxElement = toPixelX(ELEMENT_VAL);
+            const regionHeight = 60; 
+
+            const regionStart = pxBound + 5;
+            ctx.fillStyle = 'rgba(255, 235, 59, 0.3)'; 
+            ctx.fillRect(regionStart, Y_AXIS - regionHeight/2, pxSup - regionStart, regionHeight);
+
+            ctx.beginPath();
+            ctx.setLineDash([5, 3]);
+            ctx.moveTo(pxBound, Y_AXIS - (regionHeight/2 + 10)); 
+            ctx.lineTo(pxBound, Y_AXIS + (regionHeight/2 + 10));
+            ctx.strokeStyle = '#555'; 
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#555';
+            ctx.textAlign = 'center';
+            ctx.fillText('sup(ℕ) - 1', pxBound, Y_AXIS + 80);
+
+            ctx.setLineDash([]); 
+            ctx.font = '300 70px Segoe UI, sans-serif'; 
+            ctx.fillStyle = '#555'; 
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('(', pxBound + 5, Y_AXIS - 4); 
+
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(pxSup, Y_AXIS - 60);
+            ctx.lineTo(pxSup, Y_AXIS + 60);
+            ctx.strokeStyle = '#e74c3c'; // Red
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = '#e74c3c';
+            ctx.textAlign = 'center';
+            ctx.fillText('sup(ℕ)', pxSup, Y_AXIS - 80);
+
+            ctx.font = '300 70px Segoe UI, sans-serif'; 
+            ctx.fillStyle = '#e74c3c'; 
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(']', pxSup - 1, Y_AXIS - 4); 
+
+            ctx.beginPath();
+            ctx.arc(pxElement, Y_AXIS, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#0050ff'; 
+            ctx.fill();
+
+            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = '#0050ff';
+            ctx.textAlign = 'center';
+            ctx.fillText('n', pxElement, Y_AXIS - 15);
+        }
+
+        // --- PLOT 3 & 4: Real Line with Integers and x ---
+        function drawRealLinePlot(canvasId) {
+            const setup = setupCanvas(canvasId, 250);
+            if (!setup) return;
+            const { ctx, width, height } = setup;
+            const centerY = height / 2;
+
+            // Configuration
+            const xVal = 6 + 0.58; 
+            const floorX = Math.floor(xVal);
+            const minInt = floorX - 5;
+            const maxInt = floorX + 3;
+            const padding = 60;
+
+            function toPixel(val) {
+                const range = maxInt - minInt + 1; 
+                const availableWidth = width - 2 * padding;
+                return padding + ((val - minInt) / range) * availableWidth;
+            }
+
+            // 1. Draw Real Line
+            ctx.beginPath();
+            ctx.moveTo(padding - 20, centerY);
+            ctx.lineTo(width - padding + 20, centerY);
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 2. Draw Integers
+            const radius = 8;
+            for (let k = minInt; k <= maxInt; k++) {
+                const px = toPixel(k);
+                ctx.beginPath();
+                ctx.arc(px, centerY, radius, 0, 2 * Math.PI);
+                
+                if (k > xVal) {
+                    ctx.fillStyle = "blue";
+                    ctx.globalAlpha = 1.0;
+                } else {
+                    ctx.fillStyle = "blue";
+                    ctx.globalAlpha = 0.2; 
+                }
+                ctx.fill();
+                ctx.globalAlpha = 1.0; 
+            }
+
+            // 3. Draw x (Tick Mark)
+            const pxX = toPixel(xVal);
+            const tickHeight = 15;
+            ctx.beginPath();
+            ctx.moveTo(pxX, centerY - tickHeight);
+            ctx.lineTo(pxX, centerY + tickHeight);
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 4. Label x
+            ctx.font = "italic bold 24px Times New Roman";
+            ctx.fillStyle = "red";
+            ctx.textAlign = "center";
+            ctx.fillText("x", pxX, centerY - 25); 
+
+            // 5. Label n (Next larger integer)
+            const nVal = Math.floor(xVal) + 1;
+            const pxN = toPixel(nVal);
+            ctx.font = "italic bold 24px Times New Roman";
+            ctx.fillStyle = "blue";
+            ctx.textAlign = "center";
+            ctx.fillText("n", pxN, centerY + 35); 
+        }
+
+        // Initialize everything on load
+        window.onload = function() {
+            drawPlot1('canvas_plot1_a');
+            drawPlot1('canvas_plot1_b');
+            drawPlot2('canvas_plot2');
+            drawRealLinePlot('canvas_plot3');
+            drawRealLinePlot('canvas_plot4');
+            updateUI();
+        };
+
+    </script>
+</body>
+</html>

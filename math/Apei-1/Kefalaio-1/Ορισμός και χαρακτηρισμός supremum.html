@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supremum & Infimum | Interactive Learning</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                menuOptions: {
+                    settings: {
+                        assistiveMml: false
+                    }
+                }
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onload="initialRender()"></script>
+
+    <style>
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            /* Warmer Palette Colors */
+            --primary-color: #d97706; /* Warm Amber/Orange */
+            --primary-hover: #b45309;
+            --accent-color: #78350f; /* Deep clay brown */
+            
+            /* Card & Text Colors */
+            --card-bg: #ffffff;
+            --text-main: #292524; /* Warm dark gray */
+            --text-muted: #78716c; /* Warm stone gray */
+            
+            /* Feedback Colors */
+            --info-bg: #f0f9ff;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1;    
+            
+            --success-bg: #f0fdf4;
+            --success-text: #15803d;
+            --error-bg: #fef2f2;
+            --error-text: #991b1b;
+
+            --check-color: #1e3a8a;  /* Dark Blue/Black */
+
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42; /* Slate Grey */
+            background-image: url("data:image/svg+xml,%3Csvg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext { fill: rgba(255, 255, 255, 0.12); font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; user-select: none; }%3C/style%3E%3Ctext x='40' y='60' transform='rotate(-10)' font-size='20'%3E∫ f(x) dx%3C/text%3E%3Ctext x='220' y='80' font-size='28'%3E∑ n=1%3C/text%3E%3Ctext x='380' y='50' transform='rotate(15)' font-size='22'%3EA = πr²%3C/text%3E%3Ctext x='60' y='180' font-size='34'%3E√-1%3C/text%3E%3Ctext x='200' y='220' transform='rotate(-5)' font-size='24'%3Ef(x) = y%3C/text%3E%3Ctext x='350' y='180' font-size='20'%3Elim x→∞%3C/text%3E%3Ctext x='40' y='350' font-size='18'%3Esin²θ + cos²θ = 1%3C/text%3E%3Ctext x='280' y='350' transform='rotate(5)' font-size='26'%3EΔy/Δx%3C/text%3E%3Ctext x='100' y='420' font-size='24'%3Ee^{iπ} + 1 = 0%3C/text%3E%3Ctext x='350' y='420' font-size='32'%3E∂x%3C/text%3E%3Ctext x='180' y='140' font-size='16'%3Ey = mx + b%3C/text%3E%3Ctext x='420' y='280' font-size='22'%3Elog(x)%3C/text%3E%3Ctext x='30' y='250' font-size='30' opacity='0.1'%3E∞%3C/text%3E%3Ctext x='150' y='300' font-size='22' transform='rotate(15)'%3EP(A|B)%3C/text%3E%3C/svg%3E");
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 900px; 
+            min-height: 700px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- SLIDE COUNTER --- */
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 0.85rem; font-weight: 500; 
+            color: rgba(0, 0, 0, 0.3); 
+            background: transparent; 
+            padding: 4px 8px;
+            z-index: 20;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .content-area {
+            padding: 3rem 4rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide { display: none; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .slide.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { 
+            font-family: "Georgia", "Times New Roman", serif;
+            font-size: 2.5rem; 
+            margin-bottom: 0.75rem; 
+            color: var(--accent-color);
+            letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        
+        .tagline { 
+            font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.15em; 
+            font-size: 0.8rem; font-weight: 700; color: var(--primary-color); 
+            margin-bottom: 1rem; display: block; 
+        }
+
+        p { 
+            font-size: 1.2rem; line-height: 1.6; color: var(--text-main); 
+            margin-bottom: 1.2rem; opacity: 0.9;
+        }
+
+        /* --- BLOCKS --- */
+        .info-block {
+            background-color: var(--info-bg); border-left: 5px solid var(--info-text);
+            padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin: 1rem 0; color: #0c4a6e; font-size: 1.15rem;
+        }
+        .emphasis-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+            border-left: 6px solid var(--primary-color);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            font-size: 1.35rem; 
+            font-family: "Georgia", serif;
+            color: var(--accent-color);
+            box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.15); 
+            position: relative;
+        }
+        .exercise-block {
+            background-color: #f8fafc; border: 2px dashed #cbd5e1;
+            padding: 1.5rem; border-radius: 12px; margin-top: 2rem;
+        }
+        .exercise-title {
+            font-weight: 700; text-transform: uppercase; font-size: 0.9rem;
+            color: var(--text-muted); margin-bottom: 0.5rem; display: block;
+        }
+
+        /* --- CANVAS WRAPPER --- */
+        .canvas-wrapper {
+            width: 100%; display: flex; justify-content: center; margin: 1.5rem 0;
+        }
+        canvas {
+            background: white; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 100%; height: auto; border: 1px solid #e7e5e4;
+        }
+
+        /* --- TOOLTIP STYLE --- */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 6px; }
+        .info-badge { 
+            display: inline-flex; justify-content: center; align-items: center; 
+            width: 20px; height: 20px; border-radius: 50%; 
+            background-color: #e0f2fe; color: #0369a1; 
+            font-family: sans-serif; font-weight: bold; font-size: 13px; 
+            cursor: pointer; transition: all 0.2s ease; 
+            vertical-align: 2px; 
+        }
+        .tooltip-container:hover .info-badge { background-color: #0284c7; color: white; transform: scale(1.1); }
+        .tooltip-text { visibility: hidden; width: 320px; background-color: #333; color: #fff; text-align: left; border-radius: 8px; padding: 12px; position: absolute; z-index: 100; bottom: 140%; left: 50%; margin-left: -160px; opacity: 0; transition: opacity 0.3s; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); font-family: -apple-system, sans-serif; font-weight: normal; }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        /* Modified Info Badge for "Hint" */
+        .hint-badge {
+            width: auto; padding: 0 8px; border-radius: 12px;
+            transform: translateY(8px);
+        }
+
+        /* Learning List (Checkmarks) for Slide 10 */
+        .learning-list { list-style: none; padding: 0; margin-top: 1rem; }
+        .learning-list li {
+            position: relative; padding-left: 2.5rem; margin-bottom: 1rem;
+            font-size: 1.2rem; color: var(--text-main); line-height: 1.6;
+        }
+        .learning-list li::before {
+            content: "✔"; color: var(--check-color); font-size: 1.4rem;
+            position: absolute; left: 0; top: 0.1rem;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-footer { padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4; display: flex; justify-content: space-between; align-items: center; background: #fffcfc; margin-top: auto; }
+        .nav-control { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 12px 18px; color: var(--text-muted); border-radius: 8px; transition: all 0.2s; }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control.hidden { visibility: hidden; pointer-events: none; }
+        .arrow-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+        .nav-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; font-weight: 700; }
+
+        /* Title Slide Styling */
+        .main-title { font-size: 3.5rem; color: var(--accent-color); font-family: "Georgia", serif; margin-bottom: 1rem; text-align: center; }
+        .sub-title { font-size: 1.5rem; color: var(--text-muted); font-weight: 300; text-align: center; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="slide-counter" id="slideCounter">1 / 14</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+                    <h1 class="main-title">Supremum & Infimum</h1>
+                    <h2 class="sub-title">Έννοια, ορισμός και χαρακτηρισμός</h2>
+                </div>
+            </div>
+
+            <div class="slide" id="slide2">
+                <span class="tagline">Η έννοια του supremum</span>
+                <h2>Η έννοια του supremum</h2>
+                <p>Υπάρχουν σύνολα πραγματικών αριθμών, που δεν έχουν κάποιο μέγιστο στοιχείο, χωρίς τα στοιχεία τους να γίνονται απείρως μεγάλα.</p>
+                <p>Συγκεκριμένα, φαίνεται οι αριθμοί του συνόλου να πλησιάζουν κάποιο "μέγιστο στοιχείο", το οποίο όμως δεν περιέχεται μέσα στο σύνολο.</p>
+                <p>Θέλουμε να περιγράψουμε αυτό το "μεγαλύτερο όριο", το οποίο πλησιάζουν τα στοιχεία του συνόλου.</p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="c_supremum" width="800" height="250"></canvas>
+                </div>
+                
+                <div class="emphasis-box">
+                    <strong>Ερώτηση:</strong> Ποιο φαίνεται να είναι το supremum του συνόλου των μπλε σημείων;
+                </div>
+            </div>
+
+            <div class="slide" id="slide3">
+                <span class="tagline">Διαφορά με το maximum</span>
+                <h2>Διαφορά με το maximum</h2>
+                <p>Η παραδοσιακή έννοια του μέγιστου στοιχείου (maximum) δεν λειτουργεί εδώ: Το maximum είναι το μεγαλύτερο στοιχείο του συνόλου.</p>
+                <p>Το συγκεκριμένο σύνολο, όμως, δεν έχει κανένα στοιχείο που να είναι μεγαλύτερο από όλα τα υπόλοιπα.</p>
+                <p>Όποιο στοιχείο του συνόλου και να επιλέξουμε, θα υπάρχει πάντα κάποιο μεγαλύτερο.
+                    <span class="tooltip-container" style="margin-left: 4rem;">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Kαι συνεπώς αυτό το τυχαίο στοιχείο που επιλέξαμε δεν είναι το maximum. Έτσι αποδεικνύουμε ότι το σύνολο δεν έχει μέγιστο στοιχείο.</span>
+                    </span>
+                </p>
+
+                <div class="canvas-wrapper">
+                    <canvas id="c_arrow" width="800" height="250"></canvas>
+                </div>
+
+                <div class="exercise-block">
+                    <span class="exercise-title">Άσκηση</span>
+                    Ζωγράφισε σε ένα χαρτί ένα παρόμοιο σχήμα που να εξηγεί οπτικά την έννοια του infimum αντί του supremum.
+                </div>
+            </div>
+
+            <div class="slide" id="slide4">
+                <span class="tagline">Ορισμός του supremum</span>
+                <h2>Ορισμός του supremum</h2>
+                <p>Πώς μπορούμε να περιγράψουμε καλύτερα τι είναι αυτό το supremum;</p>
+                <p>Ένας τρόπος να το εξηγήσουμε σε μεγαλύτερο βάθος είναι να πούμε ότι είναι το αποτέλεσμα της ακόλουθης κίνησης:</p>
+
+                <div class="canvas-wrapper">
+                    <canvas id="c_moving1" width="800" height="250"></canvas>
+                </div>
+
+                <p>Ξεκινάμε από τα δεξιά ("από το $+\infty$") και προχωράμε προς τα αριστερά, μέχρι να μην μπορούμε να προχωρήσουμε άλλο χωρίς να διασταυρωθούμε με στοιχεία του συνόλου. Είναι σαν τα σημεία του συνόλου να είναι τοίχοι που σταματάνε την πορεία μας προς τα αριστερά. Το σημείο στο οποίο σταματάμε είναι το supremum.</p>
+            </div>
+
+            <div class="slide" id="slide5">
+                <span class="tagline">Αυστηροποίηση του Ορισμού</span>
+                <h2>Αυστηροποίηση του Ορισμού</h2>
+                <p>Οι αριθμοί από τους οποίους περνάμε μέχρι να σταματήσουμε στο supremum, είναι οι αριθμοί που βρίσκονται πιο δεξιά από ολόκληρο το σύνολο.</p>
+                <p>Αυτοί οι αριθμοί, που είναι μεγαλύτεροι ή ίσοι από όλους τους αριθμούς του συνόλου, λέγονται <strong>άνω φράγματα</strong> του συνόλου. Είναι ουσιαστικά οι αριθμοί που, αν τους προσθέταμε στο σύνολο, θα γίνονταν το maximum του συνόλου.</p>
+
+                <div class="canvas-wrapper">
+                    <canvas id="c_upper_bounds" width="800" height="250"></canvas>
+                </div>
+
+                <p>Το supremum, λοιπόν, είναι ο ελάχιστος από αυτούς τους αριθμούς. Είναι το minimum των άνω φραγμάτων (το "ελάχιστο άνω φράγμα").</p>
+                
+                <div class="exercise-block">
+                    <span class="exercise-title">Άσκηση</span>
+                    Γράψε έναν αντίστοιχο ορισμό για το infimum.
+                </div>
+            </div>
+
+            <div class="slide" id="slide6">
+                <span class="tagline">Για σύνολα με maximum</span>
+                <h2>Για σύνολα με maximum</h2>
+                <p>Φυσικά, ένα σύνολο μπορεί να είναι πιο απλό και να έχει maximum.</p>
+                <p>Σε αυτήν την περίπτωση, το maximum είναι άνω φράγμα (γιατί στον ορισμό του άνω φράγματος είπαμε ότι πρέπει να είναι μεγαλύτερο <u>ή ίσο</u> από κάθε στοιχείο του συνόλου).</p>
+                <p>Επιπλέον, είναι το μικρότερο από όλα τα κάτω φράγματα.
+                    <span class="tooltip-container">
+                        <span class="info-badge">?</span>
+                        <span class="tooltip-text">Γιατί δεν μπορεί κάποιος μικρότερος αριθμός να είναι κάτω φράγμα;</span>
+                    </span>
+                </p>
+                <p>Γι' αυτόν το λόγο, το maximum είναι το supremum.</p>
+
+                <div class="canvas-wrapper">
+                    <canvas id="c_is_max1" width="800" height="250"></canvas>
+                </div>
+            </div>
+
+            <div class="slide" id="slide7">
+                <span class="tagline">Χαρακτηρισμός</span>
+                <h2>Χαρακτηρισμός</h2>
+                <p>Ένας άλλος τρόπος να ορίσουμε το supremum είναι ως το άνω φράγμα που βρίσκεται "απείρως κοντά" σε στοιχεία του συνόλου.</p>
+
+                <div class="canvas-wrapper">
+                    <canvas id="c_arrow_2" width="800" height="250"></canvas>
+                </div>
+
+                <p style="margin-top: 2rem;">Πώς μπορούμε να περιγράψουμε αυτό το "απείρως κοντά σε στοιχεία του συνόλου";</p>
+            </div>
+
+            <div class="slide" id="slide8">
+                <span class="tagline">Χαρακτηρισμός - Αυστηροποίηση</span>
+                <h2>Χαρακτηρισμός - Αυστηροποίηση</h2>
+                <p>Μπορούμε να πούμε ότι αν θεωρήσουμε ένα διάστημα αριστερά του supremum, όσο μικρό και αν είναι, θα πρέπει να περιέχει στοιχεία του συνόλου.</p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="c_epsilon" width="800" height="250"></canvas>
+                </div>
+                
+                <p>Με άλλα λόγια, όποιο μήκος (ας το ονομάσουμε έψιλον) κι αν επιλέξουμε για το διάστημά μας, θα υπάρχει τουλάχιστον ένα στοιχείο του συνόλου που περιέχεται μέσα στο διάστημα.</p>
+                <div class="emphasis-box">
+                    $$ \forall \epsilon >0: \exists \alpha \in A: \alpha \in (x - \epsilon, x] $$ (όπου Α είναι το όνομα του συνόλου και x είναι το supremum του A: $x=\sup(A)$ )<br>
+                    Ή ισοδύναμα: $$ \forall \epsilon >0: \exists \alpha \in A: x - \epsilon < \alpha \le x $$
+                </div>
+            </div>
+
+            <div class="slide" id="slide9">
+                <span class="tagline">Αν το σύνολο έχει maximum</span>
+                <h2>Αν το σύνολο έχει maximum</h2>
+                <p>Στην περίπτωση που το σύνολο έχει maximum, μια φυσική κίνηση είναι να ορίσουμε το supremum ως το μέγιστο στοιχείο του συνόλου.</p>
+
+                <div class="canvas-wrapper">
+                    <canvas id="c_is_max2" width="800" height="250"></canvas>
+                </div>
+
+                <p>Ας δούμε τον δεύτερο ορισμό (τον "χαρακτηρισμό") που δώσαμε για το supremum: Το supremum είναι το άνω φράγμα x που ικανοποιεί ότι $$ \forall \epsilon >0: \exists \alpha \in A: \alpha \in (x - \epsilon, x] $$</p>
+
+                <div class="exercise-block">
+                    <span class="exercise-title">Σημαντική Άσκηση</span>
+                    Έστω ότι το Α έχει maximum. Ποια λεπτομέρεια στον ορισμό κάνει το supremum να είναι ίσο με το maximum;
+                    <span class="tooltip-container">
+                        <span class="info-badge hint-badge">Hint</span>
+                        <span class="tooltip-text">
+                            <strong>Hint:</strong> Για να ισχύει ότι $\sup(A) = \max(A)$, πρέπει για κάθε $\epsilon$ να μπορούμε να επιλέξουμε ένα στοιχείο του $A$ που να βρίσκεται μέσα στο $(x - \epsilon, x] = (\max(A) - \epsilon, \max(A)]$. Ποιο στοιχείο του $A$ μπορούμε να επιλέξουμε για αυτήν τη δουλειά; Τι μας επιτρέπει να κάνουμε αυτήν την επιλογή;
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="slide" id="slide10">
+                <span class="tagline">Ορισμός vs Χαρακτηρισμός</span>
+                <h2>Τι είναι ο χαρακτηρισμός</h2>
+                <p>Όπως είδαμε, υπάρχουν δύο δυνατοί ορισμοί που φαίνεται να αυστηροποιούν την ίδια έννοια.</p>
+                <p>Ωστόσο, για να είναι η έννοια συγκεκριμένη, θα πρέπει να έχει έναν μόνο ορισμό.</p>
+                <p>Επιλέγουμε να χρησιμοποιήσουμε τον πρώτο υποψήφιο ορισμό: το supremum είναι το ελάχιστο από τα άνω φράγματα.
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Βέβαια δεν έχουμε αποδείξει ότι το σύνολο των άνω φραγμάτων έχει ελάχιστο στοιχείο. Επομένως είναι ανοιχτό το ενδεχόμενο να μην ορίζεται το supremum (και συμβαίνει πράγματι σε κάποιες περιπτώσεις!).</span>
+                    </span>
+                </p>
+                <p>Τότε, ο δεύτερος ορισμός, αν πράγματι περιγράφει ακριβώς την ίδια έννοια, θα πρέπει να είναι ισοδύναμος.</p>
+                <ul class="learning-list">
+                    <li>Όποτε ένας αριθμός είναι supremum (με βάση τον πρώτο ορισμό), θα είναι supremum και με βάση τον δεύτερο ορισμό.</li>
+                    <li>Κι επίσης όποτε ένας αριθμός ικανοποιεί τον δεύτερο ορισμό, θα είναι supremum και με βάση τον πρώτο ορισμό.
+                         <span class="tooltip-container">
+                            <span class="info-badge">?</span>
+                            <span class="tooltip-text">Γιατί χρειάζεται να τσεκάρουμε και τις δύο κατευθύνσεις;</span>
+                        </span>
+                    </li>
+                </ul>
+                <div class="emphasis-box">
+                    Ένας τέτοιος εναλλακτικός, "δεύτερος ορισμός", που είναι ισοδύναμος με τον ορισμό που χρησιμοποιούμε, ονομάζεται <strong>χαρακτηρισμός</strong>.
+                </div>
+            </div>
+
+            <div class="slide" id="slide11">
+                <span class="tagline">Απόδειξη Χαρακτηρισμού</span>
+                <h2>Απόδειξη Χαρακτηρισμού</h2>
+                <p>Έστω ότι το x είναι το sup(A), για ένα σύνολο A $\subset \mathbb{R}$ (δηλαδή το ελάχιστο άνω φράγμα).</p>
+                <p>Τότε ικανοποιεί τον χαρακτηρισμό.</p>
+
+                <div class="info-block" style="background-color: var(--card-bg); border-left: 4px solid var(--primary-color);">
+                    <strong>Απόδειξη:</strong><br>
+                    Για να ικανοποιεί τον χαρακτηρισμό, πρέπει για κάθε $\epsilon > 0$ να υπάρχει ένα $\alpha \in A$ με $\sup(A)-\epsilon < \alpha \le \sup(A)$.<br>
+                    <small>(Το $\alpha$ που επιλέγουμε για κάθε μία τιμή του $\epsilon$ μπορεί να είναι διαφορετικό!)</small>
+                </div>
+                
+                <p>Ας θεωρήσουμε ένα τυχαίο $\epsilon > 0$. Γιατί θα υπάρχει ένα στοιχείο του A μέσα στο $(\sup(A)-\epsilon, \sup(A)]$;</p>
+                
+                <div class="canvas-wrapper">
+                    <canvas id="c_proof_1" width="800" height="250"></canvas>
+                </div>
+                
+                <p>Το μόνο που μπορεί να μας βοηθήσει είναι ο ορισμός. Γνωρίζουμε ότι το sup(A) είναι το ελάχιστο άνω φράγμα. Το γεγονός ότι είναι άνω φράγμα μας λέει ότι τα στοιχεία του Α είναι στο $(-\infty, \sup(A)]$. 
+                    <span class="tooltip-container">
+                            <span class="info-badge">i</span>
+                            <span class="tooltip-text">Από την άλλη, στο σχήμα δεν υπάρχει και κανένα άλλο άνω φράγμα. Επομένως το γεγονός ότι είναι το ελάχιστο άνω φράγμα φαίνεται να μας είναι άχρηστο...</span>
+                        </span>
+                </p>
+            </div>
+
+            <div class="slide" id="slide12">
+                <span class="tagline">Απόδειξη Χαρακτηρισμού (Cont.)</span>
+                <h2>Απόδειξη Χαρακτηρισμού</h2>
+                <p>Θέλουμε να αποδείξουμε ότι κάποιο από τα στοιχεία είναι και μεγαλύτερο από το $\sup(A)-\epsilon$ (ώστε να βρίσκεται μέσα στο $(\sup(A) - \epsilon, \ \sup(A)]$).</p>
+                <p>Είναι δύσκολο να εξηγήσουμε γιατί θα συμβαίνει αυτό με βάση το σχήμα. Σκέψου λίγο πώς θα προσπαθούσες να το εξηγήσεις εσύ σε κάποιον...</p>
+                <p>Η πιο λογική συνέχεια της επιχειρηματολογίας είναι ότι, αν δεν υπήρχε κανένα στοιχείο του Α μέσα στο $(\sup(A) - \epsilon, \ \sup(A)]$, τότε το sup(A) δεν θα μπορούσε να είναι το supremum.</p>
+
+                <div class="canvas-wrapper">
+                    <canvas id="c_proof_2" width="800" height="250"></canvas>
+                </div>
+
+                <p>Με αυτόν τον συλλογισμό κάνουμε μια απαγωγή σε άτοπο!
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Γενικώς, συμβαίνει μερικές φορές να έχουμε ένα σχήμα που φαίνεται προφανώς σωστό αλλά δεν βρίσκουμε κανένα επιχείρημα ως προς το <em>γιατί</em> είναι σωστό. Αυτό είναι ένα σημάδι ότι πρέπει να χρησιμοποιήσουμε απαγωγή σε άτοπο!</span>
+                    </span>
+                </p>
+                <div class="emphasis-box">Γενικά, με την απαγωγή σε άτοπο, αποκτάμε ένα νέο σχήμα, το οποίο είναι λάθος. Και θέλουμε να εξηγήσουμε τον λόγο που είναι λάθος!</div>
+
+                <div class="exercise-block">
+                    <span class="exercise-title">Άσκηση</span>
+                    Ολοκλήρωσε την απόδειξη (μένει η ολοκλήρωση του συλλογισμού και η αυστηροποίηση των επιχειρημάτων).
+                </div>
+            </div>
+
+            <div class="slide" id="slide13">
+                <span class="tagline">Τελική Απόδειξη</span>
+                <h2>Τελική Απόδειξη</h2>
+                <p>Ύστερα από την ολοκλήρωση των συλλογισμών και την αυστηροποίηση, καταλήγουμε στην ακόλουθη απόδειξη:</p>
+                
+                <div class="emphasis-box" style="font-size: 1.15rem; font-family: -apple-system, sans-serif;">
+                    <p>Έστω $\epsilon > 0$.</p>
+                    <p>Αφού το $\sup(A)$ είναι άνω φράγμα, κάθε στοιχείο του $A$ είναι μικρότερο ή ίσο του $\sup(A)$. <strong>(1)</strong></p>
+                    <p>Έστω (προς άτοπο) ότι κανένα $\alpha \in A$ δεν είναι μεγαλύτερο από $\sup(A) - \epsilon$.</p>
+                    <p>Δηλαδή $\forall \alpha \in A: \alpha \le \sup(A) - \epsilon$.</p>
+                    <p>Τότε το $\sup(A) - \epsilon$ είναι άνω φράγμα του $A$, κάτι το οποίο αντιβαίνει στον ορισμό του supremum, καθώς $\sup(A) - \epsilon < \sup(A)$.</p>
+                    <p>Επομένως, αναγκαστικά $\exists \alpha \in A: \alpha > \sup(A) - \epsilon$, που μαζί με το <strong>(1)</strong> ολοκληρώνει την απόδειξη.</p>
+                </div>
+                
+                <div class="info-block">
+                    <span class="info-badge">i</span> Η απόδειξη αυτή δεν είναι τέλεια γραμμένη, αλλά είναι, θα λέγαμε, ικανοποιητική.
+                </div>
+            </div>
+
+            <div class="slide" id="slide14">
+                <span class="tagline">Συμπέρασμα</span>
+                <h2>Κατανόηση της Απόδειξης</h2>
+                <p>Είναι σημαντικό να πάρεις τον χρόνο να καταλάβεις αυτήν την απόδειξη. Αυτό σημαίνει:</p>
+                <ul class="learning-list">
+                    <li>Να καταλαβαίνεις ποια βήματα κάνουμε σε επίπεδο σχημάτων.</li>
+                    <li>Να καταλαβαίνεις γιατί το κάθε βήμα είναι λογικό.</li>
+                </ul>
+                <div class="emphasis-box">
+                    Θα δεις ότι τα βήματα δεν είναι τόσο πολλά και προκύπτουν πολύ λογικά, αν ξέρουμε τι έχουμε δεδομένο και πού θέλουμε να πάμε.
+                </div>
+                <p>Και κάπως έτσι φτάνεις στην πρώτη σου πραγματικά ολοκληρωμένη επαφή με μια απόδειξη!</p>
+            </div>
+
+        </div> 
+        
+        <div class="nav-footer">
+            <button class="nav-control nav-prev hidden" id="prevBtn" onclick="navigate(-1)">
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span class="nav-label" id="prevLabel">Πίσω</span>
+            </button>
+
+            <button class="nav-control nav-next" id="nextBtn" onclick="navigate(1)">
+                <span class="nav-label" id="nextLabel">Επόμενο</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 14;
+
+        const slideLabels = { 
+            1: "Τίτλος",
+            2: "Έννοια", 
+            3: "Διαφορά", 
+            4: "Ορισμός", 
+            5: "Άνω Φράγματα", 
+            6: "Maximum", 
+            7: "Χαρακτηρισμός", 
+            8: "Epsilon", 
+            9: "Σύνθεση",
+            10: "Ορισμός vs Χαρ.",
+            11: "Απόδειξη (1)", 
+            12: "Απόδειξη (2)", 
+            13: "Τελική Απόδειξη",
+            14: "Κατανόηση"
+        };
+
+        function initialRender() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        function navigate(direction) {
+            currentSlide += direction;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            const progress = document.getElementById('progressFill');
+            progress.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevLabel = document.getElementById('prevLabel');
+            const nextLabel = document.getElementById('nextLabel');
+            const slideCounter = document.getElementById('slideCounter');
+
+            prevBtn.classList.toggle('hidden', currentSlide === 1);
+            nextBtn.classList.toggle('hidden', currentSlide === totalSlides);
+
+            if (currentSlide > 1) prevLabel.textContent = slideLabels[currentSlide - 1];
+            if (currentSlide < totalSlides) nextLabel.textContent = slideLabels[currentSlide + 1];
+            
+            slideCounter.textContent = `${currentSlide} / ${totalSlides}`;
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        // --- CANVAS LOGIC ---
+        function setupCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = { width: 800, height: 250 };
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            return { canvas, ctx, rect, dpr };
+        }
+
+        const PADDING = 60;
+        const MIN_X = -0.1;
+        const MAX_X = 1.2; 
+        const POINT_COUNT = 2000; 
+
+        function toPixelX(val, rect) {
+            const range = MAX_X - MIN_X;
+            const pixelRange = rect.width - (PADDING * 2);
+            return PADDING + ((val - MIN_X) / range) * pixelRange;
+        }
+
+        function drawTick(ctx, val, label, rect, axisY) {
+            let px = toPixelX(val, rect);
+            ctx.beginPath();
+            ctx.moveTo(px, axisY - 10);
+            ctx.lineTo(px, axisY + 10);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            if (val !== 0) {
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText(label, px, axisY + 35);
+            }
+        }
+
+        // 1. Static Supremum
+        function initFigureSupremum(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                drawTick(ctx, 0, "0", rect, Y_AXIS); drawTick(ctx, 1, "1", rect, Y_AXIS);
+
+                for (let n = 1; n <= POINT_COUNT; n++) {
+                    let val = 1 - (1/n); let px = toPixelX(val, rect);
+                    let visualN = (n === 1) ? 2 : n;
+                    let radius = Math.max(0.6, 8 / Math.pow(visualN, 0.35));
+                    let alpha = Math.max(0.03, 1 / Math.pow(n, 0.45));
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, radius, 0, Math.PI * 2);
+                    let red = Math.min(100, n * 2); ctx.fillStyle = `rgba(${red}, 100, 255, ${alpha})`; ctx.fill();
+                    if (n <= 5) {
+                        ctx.fillStyle = '#444'; ctx.font = '14px Arial'; ctx.textAlign = 'center';
+                        let yOffset = n % 2 === 0 ? 35 : -25; let labelText = n === 1 ? "0" : `${n-1}/${n}`;
+                        ctx.fillText(labelText, px, Y_AXIS + yOffset);
+                        ctx.beginPath(); ctx.moveTo(px, Y_AXIS + (n % 2 === 0 ? 10 : -10));
+                        ctx.lineTo(px, Y_AXIS + (yOffset - (n % 2 === 0 ? 12 : -5)));
+                        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                }
+            }
+            draw();
+        }
+
+        // 2. Supremum with Arrow
+        function initFigureArrow(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+
+            function drawArrow(val, label) {
+                let px = toPixelX(val, rect);
+                let arrowTop = Y_AXIS - 70; let arrowBottom = Y_AXIS - 15; 
+                ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)'; ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(px, arrowTop); ctx.lineTo(px, arrowBottom); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(px - 6, arrowBottom - 8); ctx.lineTo(px + 6, arrowBottom - 8); ctx.lineTo(px, arrowBottom); ctx.fill();
+                ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center'; ctx.fillText(label, px, arrowTop - 10);
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                drawTick(ctx, 0, "0", rect, Y_AXIS); drawTick(ctx, 1, "1", rect, Y_AXIS);
+
+                for (let n = 1; n <= POINT_COUNT; n++) {
+                    let val = 1 - (1/n); let px = toPixelX(val, rect);
+                    let visualN = (n === 1) ? 2 : n;
+                    let radius = Math.max(0.6, 8 / Math.pow(visualN, 0.35));
+                    let alpha = Math.max(0.03, 1 / Math.pow(n, 0.45));
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, radius, 0, Math.PI * 2);
+                    let red = Math.min(100, n * 2); ctx.fillStyle = `rgba(${red}, 100, 255, ${alpha})`; ctx.fill();
+                    if (n <= 5) {
+                        ctx.fillStyle = '#444'; ctx.font = '14px Arial'; ctx.textAlign = 'center';
+                        let yOffset = n % 2 === 0 ? 35 : -25; let labelText = n === 1 ? "0" : `${n-1}/${n}`;
+                        ctx.fillText(labelText, px, Y_AXIS + yOffset);
+                        ctx.beginPath(); ctx.moveTo(px, Y_AXIS + (n % 2 === 0 ? 10 : -10));
+                        ctx.lineTo(px, Y_AXIS + (yOffset - (n % 2 === 0 ? 12 : -5)));
+                        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                }
+                drawArrow(1, "supremum");
+            }
+            draw();
+        }
+
+        // 3. Moving Line
+        function initFigureMoving(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+            let boundX = 1.15; let speed = 0.002; let isWaiting = false; 
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                drawTick(ctx, 0, "0", rect, Y_AXIS); drawTick(ctx, 1, "1", rect, Y_AXIS);
+
+                for (let n = 1; n <= POINT_COUNT; n++) {
+                    let val = 1 - (1/n); let px = toPixelX(val, rect);
+                    let visualN = (n === 1) ? 2 : n;
+                    let radius = Math.max(0.6, 8 / Math.pow(visualN, 0.35));
+                    let alpha = Math.max(0.03, 1 / Math.pow(n, 0.45));
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, radius, 0, Math.PI * 2);
+                    let red = Math.min(100, n * 2); ctx.fillStyle = `rgba(${red}, 100, 255, ${alpha})`; ctx.fill();
+                    if (n <= 5) {
+                        ctx.fillStyle = '#444'; ctx.font = '14px Arial'; ctx.textAlign = 'center';
+                        let yOffset = n % 2 === 0 ? 35 : -25; let labelText = n === 1 ? "0" : `${n-1}/${n}`;
+                        ctx.fillText(labelText, px, Y_AXIS + yOffset);
+                        ctx.beginPath(); ctx.moveTo(px, Y_AXIS + (n % 2 === 0 ? 10 : -10));
+                        ctx.lineTo(px, Y_AXIS + (yOffset - (n % 2 === 0 ? 12 : -5)));
+                        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                }
+
+                let linePixelX = toPixelX(boundX, rect);
+                let isAtSupremum = boundX <= 1.00001;
+
+                ctx.beginPath(); ctx.moveTo(linePixelX, Y_AXIS - 70); ctx.lineTo(linePixelX, Y_AXIS + 70);
+                if (isAtSupremum) { ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3; } 
+                else { ctx.strokeStyle = '#28a745'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]); }
+                ctx.stroke(); ctx.setLineDash([]);
+
+                if (isAtSupremum) {
+                    ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center';
+                    ctx.fillText("Supremum (=1)", linePixelX, Y_AXIS - 80);
+                }
+
+                if (boundX > 1) { boundX -= speed; if (boundX < 1) boundX = 1; requestAnimationFrame(draw); } 
+                else {
+                    boundX = 1; 
+                    if (!isWaiting) { isWaiting = true; setTimeout(() => { boundX = 1.15; isWaiting = false; requestAnimationFrame(draw); }, 3000); }
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+
+        // 4. Upper Bounds (With Trace)
+        function initFigureUpperBounds(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+            const START_X = 1.15; let boundX = START_X; let speed = 0.002; let isWaiting = false; 
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                drawTick(ctx, 0, "0", rect, Y_AXIS); drawTick(ctx, 1, "1", rect, Y_AXIS);
+
+                for (let n = 1; n <= POINT_COUNT; n++) {
+                    let val = 1 - (1/n); let px = toPixelX(val, rect);
+                    let visualN = (n === 1) ? 2 : n;
+                    let radius = Math.max(0.6, 8 / Math.pow(visualN, 0.35));
+                    let alpha = Math.max(0.03, 1 / Math.pow(n, 0.45));
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, radius, 0, Math.PI * 2);
+                    let red = Math.min(100, n * 2); ctx.fillStyle = `rgba(${red}, 100, 255, ${alpha})`; ctx.fill();
+                    if (n <= 5) {
+                        ctx.fillStyle = '#444'; ctx.font = '14px Arial'; ctx.textAlign = 'center';
+                        let yOffset = n % 2 === 0 ? 35 : -25; let labelText = n === 1 ? "0" : `${n-1}/${n}`;
+                        ctx.fillText(labelText, px, Y_AXIS + yOffset);
+                        ctx.beginPath(); ctx.moveTo(px, Y_AXIS + (n % 2 === 0 ? 10 : -10));
+                        ctx.lineTo(px, Y_AXIS + (yOffset - (n % 2 === 0 ? 12 : -5)));
+                        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                }
+
+                let linePixelX = toPixelX(boundX, rect); let startPixelX = toPixelX(START_X, rect); let traceWidth = startPixelX - linePixelX;
+                if (traceWidth > 0) { ctx.fillStyle = 'rgba(40, 167, 69, 0.2)'; ctx.fillRect(linePixelX, Y_AXIS - 70, traceWidth, 140); }
+
+                let isAtSupremum = boundX <= 1.00001;
+                ctx.beginPath(); ctx.moveTo(linePixelX, Y_AXIS - 70); ctx.lineTo(linePixelX, Y_AXIS + 70);
+                if (isAtSupremum) { ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3; } 
+                else { ctx.strokeStyle = '#28a745'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]); }
+                ctx.stroke(); ctx.setLineDash([]);
+
+                ctx.fillStyle = isAtSupremum ? '#e74c3c' : '#28a745'; ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center';
+                let text = isAtSupremum ? "Supremum (=1)" : "Άνω φράγμα";
+                ctx.fillText(text, linePixelX, Y_AXIS - 80);
+
+                if (boundX > 1) { boundX -= speed; if (boundX < 1) boundX = 1; requestAnimationFrame(draw); } 
+                else {
+                    boundX = 1; 
+                    if (!isWaiting) { isWaiting = true; setTimeout(() => { boundX = START_X; isWaiting = false; requestAnimationFrame(draw); }, 3000); }
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+
+        // 5. Is Maximum
+        function initFigureIsMax(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+
+            function drawSupMaxArrow(val) {
+                let px = toPixelX(val, rect);
+                let arrowTop = Y_AXIS - 60; let arrowBottom = Y_AXIS - 15; 
+                ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)'; ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(px, arrowTop); ctx.lineTo(px, arrowBottom); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(px - 6, arrowBottom - 8); ctx.lineTo(px + 6, arrowBottom - 8); ctx.lineTo(px, arrowBottom); ctx.fill();
+                ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center';
+                ctx.fillText("maximum", px, arrowTop - 10); ctx.fillText("supremum", px, arrowTop - 38);
+                ctx.save(); ctx.translate(px, arrowTop - 29); ctx.rotate(Math.PI / 2);
+                ctx.font = 'bold 18px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText("=", 0, 0); ctx.restore();
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                drawTick(ctx, 0, "0", rect, Y_AXIS); drawTick(ctx, 1, "1", rect, Y_AXIS);
+
+                for (let i = 0; i <= 10; i++) {
+                    let val = i / 10; let px = toPixelX(val, rect); let radius = 6; 
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, radius, 0, Math.PI * 2); ctx.fillStyle = '#007bff'; ctx.fill();
+                    ctx.fillStyle = '#444'; ctx.font = '14px Arial'; ctx.textAlign = 'center';
+                    let yOffset = i % 2 === 0 ? 35 : -25; let labelText = "";
+                    if (i === 0) labelText = "0"; else if (i === 10) labelText = "1"; else labelText = `${i}/10`;
+                    ctx.fillText(labelText, px, Y_AXIS + yOffset);
+                    ctx.beginPath(); ctx.moveTo(px, Y_AXIS + (i % 2 === 0 ? 10 : -10));
+                    ctx.lineTo(px, Y_AXIS + (yOffset - (i % 2 === 0 ? 12 : -5)));
+                    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.stroke();
+                }
+                drawSupMaxArrow(1);
+            }
+            draw();
+        }
+
+        // 6. Epsilon
+        function initFigureEpsilon(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+
+            function drawArrow(val, label) {
+                let px = toPixelX(val, rect);
+                let arrowTop = Y_AXIS - 70; let arrowBottom = Y_AXIS - 15; 
+                ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)'; ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(px, arrowTop); ctx.lineTo(px, arrowBottom); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(px - 6, arrowBottom - 8); ctx.lineTo(px + 6, arrowBottom - 8); ctx.lineTo(px, arrowBottom); ctx.fill();
+                ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText(label, px, arrowTop - 10);
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                drawTick(ctx, 0, "0", rect, Y_AXIS); drawTick(ctx, 1, "1", rect, Y_AXIS);
+
+                const epsilon = 0.12; const pxStart = toPixelX(1 - epsilon, rect); const pxEnd = toPixelX(1, rect); const regionHeight = 24; 
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.2)'; ctx.fillRect(pxStart, Y_AXIS - regionHeight/2, pxEnd - pxStart, regionHeight);
+                ctx.font = '28px Arial'; ctx.fillStyle = '#28a745'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('(', pxStart - 2, Y_AXIS - 2); 
+                ctx.font = 'bold 16px Arial'; ctx.textBaseline = 'top'; ctx.fillText('1-ε', pxStart, Y_AXIS + 20);
+
+                for (let n = 1; n <= POINT_COUNT; n++) {
+                    let val = 1 - (1/n); let px = toPixelX(val, rect);
+                    let visualN = (n === 1) ? 2 : n;
+                    let radius = Math.max(0.6, 8 / Math.pow(visualN, 0.35));
+                    let alpha = Math.max(0.03, 1 / Math.pow(n, 0.45));
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, radius, 0, Math.PI * 2);
+                    let red = Math.min(100, n * 2); ctx.fillStyle = `rgba(${red}, 100, 255, ${alpha})`; ctx.fill();
+                    if (n <= 5) {
+                        ctx.fillStyle = '#444'; ctx.font = '14px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; 
+                        let yOffset = n % 2 === 0 ? 35 : -25; let labelText = n === 1 ? "0" : `${n-1}/${n}`;
+                        ctx.fillText(labelText, px, Y_AXIS + yOffset);
+                        ctx.beginPath(); ctx.moveTo(px, Y_AXIS + (n % 2 === 0 ? 10 : -10));
+                        ctx.lineTo(px, Y_AXIS + (yOffset - (n % 2 === 0 ? 12 : -5)));
+                        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.stroke();
+                    }
+                }
+                drawArrow(1, "supremum");
+            }
+            draw();
+        }
+
+        // 7. NEW: Proof 1 (Thinned Sequence)
+        function initFigureProof1(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+
+            // Specific constants from js_figure_proof_1.html
+            const SEQ_POINT_COUNT = 15; 
+            const RANDOM_POINT_COUNT = 5; 
+            const PROOF_MIN_X = -0.5;
+            const PROOF_MAX_X = 1.8;
+            const FULL_RADIUS = 3; const MIN_RADIUS = 1;
+
+            // Internal toPixelX for this specific graph scale
+            function toProofPixelX(val) {
+                const range = PROOF_MAX_X - PROOF_MIN_X;
+                const pixelRange = rect.width - (PADDING * 2);
+                return PADDING + ((val - PROOF_MIN_X) / range) * pixelRange;
+            }
+
+            function getRadius(val) {
+                if (val <= 0.98) return FULL_RADIUS;
+                let p = (val - 0.98) / 0.02;
+                if (p > 1) p = 1;
+                return FULL_RADIUS * (1 - p) + MIN_RADIUS * p;
+            }
+
+            function drawArrow(val, label) {
+                let px = toProofPixelX(val);
+                let arrowTop = Y_AXIS - 70; let arrowBottom = Y_AXIS - 15; 
+                ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)'; ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(px, arrowTop); ctx.lineTo(px, arrowBottom); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(px - 6, arrowBottom - 8); ctx.lineTo(px + 6, arrowBottom - 8); ctx.lineTo(px, arrowBottom); ctx.fill();
+                ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText(label, px, arrowTop - 10);
+            }
+
+            function drawTickLocal(val) {
+                let px = toProofPixelX(val);
+                ctx.beginPath(); ctx.moveTo(px, Y_AXIS - 10); ctx.lineTo(px, Y_AXIS + 10);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                // Axis
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+                
+                // Ticks (0 is hidden per instruction in script source)
+                drawTickLocal(1);
+
+                // Epsilon area
+                const epsilon = 0.12; const pxStart = toProofPixelX(1 - epsilon); const pxEnd = toProofPixelX(1); const regionHeight = 24; 
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.2)'; ctx.fillRect(pxStart, Y_AXIS - regionHeight/2, pxEnd - pxStart, regionHeight);
+                ctx.font = '28px Arial'; ctx.fillStyle = '#28a745'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('(', pxStart - 2, Y_AXIS - 2); 
+                ctx.font = 'bold 16px Arial'; ctx.textBaseline = 'top'; ctx.fillText('sup(A) - ε', pxStart, Y_AXIS + 20);
+
+                // Random Points
+                for (let i = 0; i < RANDOM_POINT_COUNT; i++) {
+                    let raw = Math.random(); let val = Math.pow(raw, 1.5); 
+                    let px = toProofPixelX(val); let r = getRadius(val);
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, r, 0, Math.PI * 2); ctx.fillStyle = 'rgb(0, 80, 255)'; ctx.fill();
+                }
+
+                // Sequence Points
+                for (let i = 0; i < SEQ_POINT_COUNT; i++) {
+                    let n = Math.pow(1.55, i); let val = 1 - (1/n);
+                    if (i === 7) continue; // Skip point logic
+                    let px = toProofPixelX(val); let r = getRadius(val);
+                    ctx.beginPath(); ctx.arc(px, Y_AXIS, r, 0, Math.PI * 2);
+                    let red = Math.min(100, i * 15); ctx.fillStyle = `rgb(${red}, 100, 255)`; ctx.fill();
+                }
+                drawArrow(1, "supremum");
+            }
+            draw();
+        }
+
+        // 8. NEW: Proof 2 (False Upper Bound)
+        function initFigureProof2(canvasId) {
+            const setup = setupCanvas(canvasId);
+            if (!setup) return;
+            const { ctx, rect } = setup;
+            const Y_AXIS = rect.height / 2;
+
+            // Specific constants from js_figure_proof_2.html
+            // Shifted bounds
+            const MIN_X = -0.72; 
+            const MAX_X = 1.58;  
+            const SEQ_POINT_COUNT = 15; 
+            const RANDOM_POINT_COUNT = 5; 
+            const FULL_RADIUS = 3; const MIN_RADIUS = 1;
+            const MARK_SUPREMUM_AT = 1.22;
+            const MARK_PARENTHESIS_AT = 1.1;
+
+            function toProofPixelX(val) {
+                const range = MAX_X - MIN_X;
+                const pixelRange = rect.width - (PADDING * 2);
+                return PADDING + ((val - MIN_X) / range) * pixelRange;
+            }
+
+            function getRadius(val) {
+                const dist = 1.0 - val;
+                if (dist >= 0.02) return FULL_RADIUS;
+                let p = (0.02 - dist) / 0.02; if (p > 1) p = 1; if (p < 0) p = 0;
+                return FULL_RADIUS * (1 - p) + MIN_RADIUS * p;
+            }
+
+            function drawArrow(val, label) {
+                let px = toProofPixelX(val);
+                if (px < PADDING || px > rect.width - PADDING) return; 
+                let arrowTop = Y_AXIS - 70; let arrowBottom = Y_AXIS - 15; 
+                ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)'; ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(px, arrowTop); ctx.lineTo(px, arrowBottom); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(px - 6, arrowBottom - 8); ctx.lineTo(px + 6, arrowBottom - 8); ctx.lineTo(px, arrowBottom); ctx.fill();
+                ctx.font = 'bold 15px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText(label, px, arrowTop - 10);
+            }
+
+            function drawTickLocal(val) {
+                let px = toProofPixelX(val);
+                if (px < PADDING || px > rect.width - PADDING) return; 
+                ctx.beginPath(); ctx.moveTo(px, Y_AXIS - 10); ctx.lineTo(px, Y_AXIS + 10);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                // Axis
+                ctx.beginPath(); ctx.moveTo(PADDING, Y_AXIS); ctx.lineTo(rect.width - PADDING, Y_AXIS);
+                ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+
+                // Tick at Wrong Supremum
+                drawTickLocal(MARK_SUPREMUM_AT);
+
+                // Epsilon area
+                const pxStart = toProofPixelX(MARK_PARENTHESIS_AT);
+                const pxEnd = toProofPixelX(MARK_SUPREMUM_AT);
+                const regionHeight = 24; 
+                ctx.fillStyle = 'rgba(40, 167, 69, 0.2)'; ctx.fillRect(pxStart, Y_AXIS - regionHeight/2, pxEnd - pxStart, regionHeight);
+                ctx.font = '28px Arial'; ctx.fillStyle = '#28a745'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('(', pxStart - 2, Y_AXIS - 2); 
+                ctx.font = 'bold 16px Arial'; ctx.textBaseline = 'top'; ctx.fillText('sup(A) - ε', pxStart, Y_AXIS + 20);
+
+                // Random Points
+                for (let i = 0; i < RANDOM_POINT_COUNT; i++) {
+                    let raw = Math.random(); let val = Math.pow(raw, 1.5); 
+                    let px = toProofPixelX(val);
+                    if (px >= PADDING && px <= rect.width - PADDING) {
+                        let r = getRadius(val);
+                        ctx.beginPath(); ctx.arc(px, Y_AXIS, r, 0, Math.PI * 2); ctx.fillStyle = 'rgb(0, 80, 255)'; ctx.fill();
+                    }
+                }
+
+                // Sequence Points
+                for (let i = 0; i < SEQ_POINT_COUNT; i++) {
+                    let n = Math.pow(1.55, i); let val = 1 - (1/n);
+                    if (i === 7) continue; 
+                    let px = toProofPixelX(val);
+                    if (px >= PADDING && px <= rect.width - PADDING) {
+                        let r = getRadius(val);
+                        ctx.beginPath(); ctx.arc(px, Y_AXIS, r, 0, Math.PI * 2);
+                        let red = Math.min(100, i * 15); ctx.fillStyle = `rgb(${red}, 100, 255)`; ctx.fill();
+                    }
+                }
+                drawArrow(MARK_SUPREMUM_AT, "supremum");
+            }
+            draw();
+        }
+
+        window.onload = function() {
+            initFigureSupremum('c_supremum');
+            initFigureArrow('c_arrow');
+            initFigureMoving('c_moving1');
+            initFigureUpperBounds('c_upper_bounds');
+            initFigureIsMax('c_is_max1');
+            initFigureArrow('c_arrow_2');
+            initFigureEpsilon('c_epsilon');
+            initFigureIsMax('c_is_max2');
+            
+            // New Figures
+            initFigureProof1('c_proof_1');
+            initFigureProof2('c_proof_2');
+
+            updateUI();
+        };
+
+    </script>
+</body>
+</html>
