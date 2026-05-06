@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Αρχή Κιβωτισμένων Διαστημάτων</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global',
+                scale: 0.9
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        /* --- THEME: AMBER / DARK --- */
+        :root {
+            --primary-color: #d97706; /* Warm Amber */
+            --primary-hover: #b45309;
+            --accent-color: #78350f; /* Deep clay brown */
+            
+            --card-bg: #ffffff;
+            --text-main: #292524; 
+            --text-muted: #78716c; 
+            
+            --info-bg: #e0f2fe;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1;    
+            
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42; 
+            /* Background pattern */
+            background-image: url("data:image/svg+xml,%3Csvg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext { fill: rgba(255, 255, 255, 0.12); font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; user-select: none; }%3C/style%3E%3Ctext x='40' y='60' transform='rotate(-10)' font-size='20'%3E∫ f(x) dx%3C/text%3E%3Ctext x='220' y='80' font-size='28'%3E∑ n=1%3C/text%3E%3Ctext x='380' y='50' transform='rotate(15)' font-size='22'%3EA = πr²%3C/text%3E%3Ctext x='60' y='180' font-size='34'%3E√-1%3C/text%3E%3Ctext x='200' y='220' transform='rotate(-5)' font-size='24'%3Ef(x) = y%3C/text%3E%3Ctext x='350' y='180' font-size='20'%3Elim x→∞%3C/text%3E%3Ctext x='40' y='350' font-size='18'%3Esin²θ + cos²θ = 1%3C/text%3E%3Ctext x='280' y='350' transform='rotate(5)' font-size='26'%3EΔy/Δx%3C/text%3E%3Ctext x='100' y='420' font-size='24'%3Ee^{iπ} + 1 = 0%3C/text%3E%3Ctext x='350' y='420' font-size='32'%3E∂x%3C/text%3E%3Ctext x='180' y='140' font-size='16'%3Ey = mx + b%3C/text%3E%3Ctext x='420' y='280' font-size='22'%3Elog(x)%3C/text%3E%3Ctext x='30' y='250' font-size='30' opacity='0.1'%3E∞%3C/text%3E%3Ctext x='150' y='300' font-size='22' transform='rotate(15)'%3EP(A|B)%3C/text%3E%3C/svg%3E");
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%; max-width: 1000px;
+            min-height: 700px; 
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; display: flex; flex-direction: column;
+            position: relative; z-index: 10;
+        }
+
+        /* --- UI ELEMENTS --- */
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 0.85rem; font-weight: 500; 
+            color: rgba(0, 0, 0, 0.3); 
+            z-index: 20; pointer-events: none; user-select: none;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .content-area {
+            padding: 3rem 4rem; flex: 1; display: flex;
+            flex-direction: column; justify-content: center;
+        }
+
+        .slide { display: none; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .slide.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1.centered-title {
+            font-family: "Georgia", serif; font-size: 3.5rem; 
+            color: var(--accent-color); text-align: center;
+        }
+
+        h2 { 
+            font-family: "Georgia", serif; font-size: 2.2rem; 
+            margin-bottom: 1rem; color: var(--accent-color);
+        }
+
+        p, li { font-size: 1.25rem; line-height: 1.6; color: var(--text-main); margin-bottom: 1rem; }
+
+        /* --- BLOCKS --- */
+        .definition-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+            border-left: 6px solid var(--primary-color);
+            padding: 2rem; border-radius: 12px; margin: 1.5rem 0;
+            font-size: 1.2rem; font-family: "Georgia", serif;
+            color: var(--accent-color);
+            box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.15); 
+        }
+
+        ul { padding-left: 1.5rem; list-style: none; }
+        ul li::before { content: "•"; color: var(--primary-color); font-weight: bold; display: inline-block; width: 1em; margin-left: -1em; font-size: 1.5rem; line-height: 1; vertical-align: middle; }
+
+        /* --- DIAGRAM CONTAINER --- */
+        .diagram-container {
+            position: relative;
+            width: 100%; height: 300px; /* Consistent height for plots */
+            background: #fff; border: 1px solid #e7e5e4; border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin: 1.5rem 0; overflow: hidden;
+        }
+        .diagram-container svg { width: 100%; height: 100%; overflow: visible; }
+        
+        /* Label style for the plots */
+        .label { 
+            position: absolute; 
+            font-family: "Georgia", serif; 
+            font-size: 14px; 
+            color: var(--text-main); 
+            transform: translate(-50%, -50%); 
+            pointer-events: none; 
+            white-space: nowrap; 
+        }
+
+        /* --- TOOLTIPS (BUTTONS) --- */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 8px; vertical-align: middle; cursor: pointer; }
+        
+        .info-badge { 
+            display: inline-flex; justify-content: center; align-items: center; 
+            width: 24px; height: 24px; border-radius: 50%; 
+            font-weight: bold; font-size: 14px; 
+            transition: transform 0.2s; border: 1px solid transparent;
+            /* Blue color scheme for both i and ? */
+            background-color: #e0f2fe; color: #0284c7; border-color: #bae6fd;
+        }
+        
+        .tooltip-container:hover .info-badge { transform: scale(1.15); background-color: #0284c7; color: white; }
+        
+        .tooltip-text { 
+            visibility: hidden; width: 350px; background-color: #333; color: #fff; 
+            text-align: left; border-radius: 8px; padding: 14px; 
+            position: absolute; z-index: 100; bottom: 145%; left: 50%; margin-left: -175px; 
+            opacity: 0; transition: opacity 0.3s; font-size: 0.95rem; line-height: 1.4; pointer-events: none; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); font-weight: normal;
+        }
+        .tooltip-text::after { 
+            content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; 
+            border-width: 6px; border-style: solid; border-color: #333 transparent transparent transparent; 
+        }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        /* --- NAV --- */
+        .nav-footer { padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4; display: flex; justify-content: space-between; align-items: center; background: #fffcfc; margin-top: auto; }
+        .nav-control { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 12px 18px; color: var(--text-muted); border-radius: 8px; transition: all 0.2s; font-weight: bold; }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control:disabled { opacity: 0; pointer-events: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="slide-counter" id="slideCounter">1 / 9</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <div style="display:flex; height:100%; align-items:center; justify-content:center;">
+                    <h1 class="centered-title">Αρχή Κιβωτισμένων Διαστημάτων</h1>
+                </div>
+            </div>
+
+            <div class="slide" id="slide2">
+                <h2>Η ιδέα</h2>
+                <p>Ας πούμε ότι έχουμε άπειρα κλειστά διαστήματα, το ένα μέσα στο άλλο.</p>
+                <p>Αν υποθέσουμε ότι το μήκος των διαστημάτων τείνει στο μηδέν, τότε τι μορφή περιμένουμε να έχει η τομή όλων των διαστημάτων;</p>
+                
+                <div class="diagram-container" id="container1">
+                    <svg id="plotSvg1"></svg>
+                </div>
+
+                <p>Η τομή των πρώτων δύο διαστημάτων είναι απλά το δεύτερο διάστημα.
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Γιατί το δεύτερο διάστημα είναι μέσα στο πρώτο</span>
+                    </span>
+                </p>
+                <p>Αντίστοιχα, η τομή των πρώτων τριών διαστημάτων είναι απλά το τρίτο διάστημα, κλπ.</p>
+                <p>Η τομή όλων των άπειρων διαστημάτων είναι οι αριθμοί που βρίσκονται μέσα σε όλα αυτά τα διαστήματα. Ουσιαστικά, η άπειρη τομή είναι το "όριο" των κιβωτισμένων διαστημάτων!</p>
+            </div>
+
+            <div class="slide" id="slide3">
+                <h2>Η Αρχή Κιβωτισμένων Διαστημάτων</h2>
+                <p>Επομένως, περιμένουμε ότι η άπειρη τομή θα είναι το απλά το $\{x\}$. Η Αρχή Κιβωτισμένων Διαστημάτων μας λέει ακριβώς αυτό, προσθέτοντας απλά και μια πιο γενική περίπτωση:</p>
+                
+                <div class="definition-box">
+                    <strong>Αρχή Κιβωτισμένων Διαστημάτων</strong>
+                    <br><br>
+                    Έστω $[\alpha_1, \beta_1] \supseteq [\alpha_2, \beta_2] \supseteq \dots \supseteq [\alpha_n, \beta_n] \supseteq \dots$ μια φθίνουσα ακολουθία κλειστών, φραγμένων διαστημάτων.
+                    <br><br>
+                    Τότε $\bigcap_{n \in \mathbb{N}} [\alpha_n, \beta_n] \neq \emptyset$.
+                    <br>
+                    Επιπλέον, αν $\beta_n - \alpha_n \to 0$, τότε το $\bigcap_{n \in \mathbb{N}} [\alpha_n, \beta_n]$ είναι μονοσύνολο.
+                </div>
+            </div>
+
+            <div class="slide" id="slide4">
+                <h2>Εύρεση της τομής</h2>
+                <p>Όταν το μήκος των διαστημάτων δεν τείνει στο 0, η άπειρη τομή περιμένουμε να είναι ένα νέο διάστημα, που είναι ίσα ίσα μικρότερο από όλα τα υπόλοιπα.</p>
+                <p>Για να κάνουμε την απόδειξη, θα πρέπει:</p>
+                <ul>
+                    <li> Να παρατηρήσουμε ότι μπορούμε να περιγράψουμε με κάποιον τρόπο αυτό το διάστημα...</li>
+                    <li> Να αποδείξουμε ότι αυτό το διάστημα είναι η τομή.</li>
+                </ul>
+                <p>Πώς μπορούμε να περιγράψουμε τα δύο άκρα του διαστήματος;</p>
+            </div>
+
+            <div class="slide" id="slide5">
+                <h2>Απόδειξη</h2>
+                <p>Τα άκρα της τομής φαίνεται να είναι τα όρια των άκρων των κιβωτισμένων διαστημάτων.</p>
+                
+                <div class="diagram-container" id="container2">
+                    <svg id="plotSvg2"></svg>
+                </div>
+
+                <p>Με άλλα λόγια, αν ονομάσουμε $\alpha$ και $\beta$ τα όρια των ακολουθιών $(\alpha_n)_{n \in \mathbb{N}}$ και $(\beta_n)_{n \in \mathbb{N}}$ αντίστοιχα, περιμένουμε ότι η τομή θα είναι το $[\alpha, \beta]$.</p>
+                <p>Ο ορισμός αυτός είναι σωστός, γιατί οι ακολουθίες $(\alpha_n)_{n \in \mathbb{N}}$ και $(\beta_n)_{n \in \mathbb{N}}$ είναι μονότονες και φραγμένες.</p>
+                <p>Π.χ., η $(\alpha_n)_{n \in \mathbb{N}}$ είναι αύξουσα γιατί τα διαστήματα είναι κιβωτισμένα (και έτσι $\alpha_{n+1} \in [\alpha_n, \beta_n] \forall n \in \mathbb{N}$, οπότε $\alpha_{n+1} \geq \alpha_n \forall n \in \mathbb{N}$).</p>
+                <p>Και επιπλέον, είναι άνω φραγμένη από το $\beta_1$ (ή οποιοδήποτε άλλο $\beta_n$).
+                    <span class="tooltip-container">
+                        <span class="info-badge">?</span>
+                        <span class="tooltip-text">Πώς μπορούμε να αιτολογήσουμε πλήρως το ότι είναι άνω φραγμένη από το $\beta_1$;</span>
+                    </span>
+                </p>
+            </div>
+
+            <div class="slide" id="slide6">
+                <h2>Απόδειξη της Ισότητας</h2>
+                <p>Για να αποδείξουμε ότι δύο σύνολα αριθμών είναι ίσα, πρέπει να δείξουμε πως:</p>
+                <ul>
+                    <li> ό,τι περιέχεται στο πρώτο, θα περιέχεται και στο δεύτερο και</li>
+                    <li> ό,τι περιέχεται στο δεύτερο, περιέχεται και στο πρώτο.</li>
+                </ul>
+                <p>Για το πρώτο μέρος, επιλέγουμε ένα οποιοδήποτε $x$ μέσα στην $\bigcap_{n \in \mathbb{N}} [\alpha_n, \beta_n]$.</p>
+                <p>Γιατί το $x$ θα είναι μικρότερο από το $\beta$ και μεγαλύτερο από το $\alpha$;</p>
+            </div>
+
+            <div class="slide" id="slide7">
+                <h2>Ολοκλήρωση της ισότητας</h2>
+                <p>Το δεύτερο μέρος της ισότητας είναι πιο εύκολο.</p>
+                <p>Θεωρούμε ένα στοιχείο $x \in [\alpha, \beta]$ και θέλουμε να δείξουμε ότι $x \in \bigcap_{n \in \mathbb{N}} [\alpha_n, \beta_n]$.</p>
+                <p>Δηλαδή ότι το $x$ ανήκει σε όλα τα διαστήματα $[\alpha_n, \beta_n]$.</p>
+                <p>Όμως, το ότι το $x$ ανήκει στο $[\alpha, \beta]$, σημαίνει ότι $x \leq \beta$ και, αφού η $(\beta_n)_{n \in \mathbb{N}}$ είναι φθίνουσα που συγκλίνει στο $\beta$, $x \leq \beta \implies x \leq \beta_n, \forall n \in \mathbb{N}$.</p>
+                <p>Αντίστοιχα βγαίνει και ότι $x \geq \alpha_n, \forall n \in \mathbb{N}$.</p>
+            </div>
+
+            <div class="slide" id="slide8">
+                <h2>Ολοκλήρωση της απόδειξης</h2>
+                <p>Τώρα που βρήκαμε την τομή, όλα τα υπόλοιπα είναι πιο απλά!</p>
+                <p>Η τομή είναι μη κενή, γιατί είναι το διάστημα $[\alpha, \beta]$.
+                    <span class="tooltip-container">
+                        <span class="info-badge">?</span>
+                        <span class="tooltip-text">Ένα σημείο με λίγες τεχνικές δυσκολίες που μπορείς να προσπαθήσεις να αιτιολογήσεις, είναι το γιατί $\alpha \leq \beta$.</span>
+                    </span>
+                </p>
+                <p>Επιπλέον, η περίπτωση που το μήκος $\beta_n - \alpha_n$ τείνει στο μηδέν, μας δίνει τα εξής: Η ακολουθία $\beta_n - \alpha_n$ συγκλίνει ούτως ή άλλως στο $\beta - \alpha$.</p>
+                <p>Έτσι, μέσω της μοναδικότητας ορίου, η πληροφορία που μας δόθηκε για το μήκος, μεταφράζεται στο συμπέρασμα $\alpha = \beta$.</p>
+                <p>Το οποίο μας λέει ότι το $[\alpha, \beta] = \{x \in \mathbb{R} \mid \alpha \leq x \leq \beta\} = \{x \in \mathbb{R} \mid \alpha \leq x \leq \alpha\} = \{\alpha\} = \{\beta\}$, και άρα η τομή είναι μονοσύνολο.
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Εδώ χρησιμοποιήσαμε τον ορισμό του διαστήματος, για να αιτιολογήσουμε ότι $[\alpha, \alpha] = \{\alpha\}$.</span>
+                    </span>
+                </p>
+            </div>
+
+            <div class="slide" id="slide9">
+                <h2>Σημείωση για τις ασκήσεις</h2>
+                <p>Η Αρχή Κιβωτισμένων Διαστημάτων δεν εμφανίζεται πολύ συχνά στις ασκήσεις.</p>
+                <p>Όταν όμως εμφανίζεται, γενικά είναι εμφανές ότι πρέπει να στραφούμε σε αυτήν, γιατί η εκφώνηση μας μιλάει για διαστήματα.</p>
+            </div>
+
+        </div>
+
+        <div class="nav-footer">
+            <button class="nav-control" id="prevBtn" onclick="navigate(-1)">← Πίσω</button>
+            <button class="nav-control" id="nextBtn" onclick="navigate(1)">Επόμενο →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 9;
+
+        // Navigation
+        function navigate(dir) {
+            currentSlide += dir;
+            if (currentSlide < 1) currentSlide = 1;
+            if (currentSlide > totalSlides) currentSlide = totalSlides;
+            updateUI();
+        }
+
+        function updateUI() {
+            // Slides
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            // Progress
+            document.getElementById('progressFill').style.width = ((currentSlide / totalSlides) * 100) + '%';
+            document.getElementById('slideCounter').textContent = currentSlide + ' / ' + totalSlides;
+
+            // Buttons
+            document.getElementById('prevBtn').disabled = (currentSlide === 1);
+            document.getElementById('nextBtn').disabled = (currentSlide === totalSlides);
+
+            // Drawings triggers (With delayed MathJax to solve rendering issues)
+            if (currentSlide === 2) {
+                setTimeout(drawPlot1, 50);
+            }
+            if (currentSlide === 5) {
+                setTimeout(drawPlot2, 50);
+            }
+            
+            // Standard MathJax for text content
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        /* --- PLOT 1: Single Point Convergence (Zero Length) --- */
+        function drawPlot1() {
+            const container = document.getElementById('container1');
+            const svg = document.getElementById('plotSvg1');
+            // Prevent redraws
+            if (svg.hasChildNodes()) return;
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            const centerX = width / 2;
+            const scaleX = width / 3.5; 
+            const steps = 14; 
+            const axisY = height / 2; 
+            
+            // Axis
+            createEl(svg, 'line', { x1: 20, y1: axisY, x2: width - 20, y2: axisY, stroke: '#57534e', 'stroke-width': 2 });
+            createEl(svg, 'path', { d: `M ${width-25} ${axisY-5} L ${width-20} ${axisY} L ${width-25} ${axisY+5}`, fill: 'none', stroke: '#57534e', 'stroke-width': 2 });
+            
+            // Labels with Double Backslashes for MathJax
+            addLabel(container, width - 15, axisY + 30, "$\\mathbb{R}$");
+
+            // Intervals
+            for (let n = 1; n <= steps; n++) {
+                const spread = 1.5 / Math.pow(n, 1.2); 
+                const x1 = centerX - (spread * scaleX);
+                const x2 = centerX + (spread * scaleX);
+                const color = `rgba(217, 119, 6, 0.15)`; 
+                const strokeColor = "#d97706";
+
+                createEl(svg, 'line', { x1: x1, y1: axisY, x2: x2, y2: axisY, stroke: color, 'stroke-width': 10 });
+
+                const isOuter = n <= 2;
+                const bracketH = isOuter ? 15 : 8; 
+                const strokeW = isOuter ? 2.5 : 1.5;
+
+                drawBracket(svg, x1, axisY, bracketH, strokeColor, strokeW, true);
+                drawBracket(svg, x2, axisY, bracketH, strokeColor, strokeW, false);
+
+                if (n <= 5) {
+                    const isTop = !isOuter; 
+                    const yOffset = isTop ? -35 : 35;
+                    addLabel(container, x1, axisY + yOffset, `$\\alpha_${n}$`);
+                    addLabel(container, x2, axisY + yOffset, `$\\beta_${n}$`);
+                }
+            }
+
+            // Convergence Point
+            createEl(svg, 'circle', { cx: centerX, cy: axisY, r: 4, fill: '#78350f' });
+            addLabel(container, centerX, axisY - 45, "$x$");
+
+            // TRIGGER MATHJAX FOR THE NEW LABELS
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([container]);
+            }
+        }
+
+        /* --- PLOT 2: Interval Convergence (Non-Zero Length) --- */
+        function drawPlot2() {
+            const container = document.getElementById('container2');
+            const svg = document.getElementById('plotSvg2');
+            if (svg.hasChildNodes()) return;
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            const centerX = width / 2;
+            const scaleX = width / 3.5; 
+            const steps = 14; 
+            const axisY = height / 2; 
+            
+            // Axis
+            createEl(svg, 'line', { x1: 20, y1: axisY, x2: width - 20, y2: axisY, stroke: '#57534e', 'stroke-width': 2 });
+            createEl(svg, 'path', { d: `M ${width-25} ${axisY-5} L ${width-20} ${axisY} L ${width-25} ${axisY+5}`, fill: 'none', stroke: '#57534e', 'stroke-width': 2 });
+            addLabel(container, width - 15, axisY + 30, "$\\mathbb{R}$");
+
+            // Limiting Interval [a, b]
+            const limitHalfWidth = 0.35 * scaleX; 
+            const limitA = centerX - limitHalfWidth;
+            const limitB = centerX + limitHalfWidth;
+
+            createEl(svg, 'line', { x1: limitA, y1: axisY, x2: limitB, y2: axisY, stroke: '#78350f', 'stroke-width': 6 });
+            addLabel(container, limitA - 10, axisY - 35, "$\\alpha$");
+            addLabel(container, limitB + 10, axisY - 35, "$\\beta$");
+
+            // Intervals
+            for (let n = 1; n <= steps; n++) {
+                const extraSpread = 1.0 / Math.pow(n, 1.2); 
+                const x1 = limitA - (extraSpread * scaleX);
+                const x2 = limitB + (extraSpread * scaleX);
+                const color = `rgba(217, 119, 6, 0.12)`; 
+                const strokeColor = "#d97706";
+
+                createEl(svg, 'line', { x1: x1, y1: axisY, x2: x2, y2: axisY, stroke: color, 'stroke-width': 10 });
+
+                const isOuter = n <= 2;
+                const bracketH = isOuter ? 15 : 8; 
+                const strokeW = isOuter ? 2.5 : 1.5;
+
+                drawBracket(svg, x1, axisY, bracketH, strokeColor, strokeW, true);
+                drawBracket(svg, x2, axisY, bracketH, strokeColor, strokeW, false);
+
+                if (n <= 4) {
+                    const yOffset = 35 + (n * 5); 
+                    addLabel(container, x1, axisY + yOffset, `$\\alpha_${n}$`);
+                    addLabel(container, x2, axisY + yOffset, `$\\beta_${n}$`);
+                }
+            }
+
+            // TRIGGER MATHJAX FOR THE NEW LABELS
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([container]);
+            }
+        }
+
+        // --- UTILS ---
+        function createEl(svg, type, attrs) {
+            const el = document.createElementNS("http://www.w3.org/2000/svg", type);
+            for (let k in attrs) el.setAttribute(k, attrs[k]);
+            svg.appendChild(el);
+            return el;
+        }
+
+        function drawBracket(svg, x, y, h, color, w, isLeft) {
+            const d = isLeft 
+                ? `M ${x+4} ${y-h} L ${x} ${y-h} L ${x} ${y+h} L ${x+4} ${y+h}`
+                : `M ${x-4} ${y-h} L ${x} ${y-h} L ${x} ${y+h} L ${x-4} ${y+h}`;
+            createEl(svg, 'path', { d: d, stroke: color, 'stroke-width': w, fill: 'none' });
+        }
+
+        function addLabel(container, x, y, latex) {
+            const div = document.createElement("div");
+            div.className = "label";
+            div.style.left = `${x}px`;
+            div.style.top = `${y}px`;
+            div.innerHTML = latex;
+            container.appendChild(div);
+        }
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>

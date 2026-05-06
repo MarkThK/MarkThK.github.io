@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Κριτήριο Λόγου & Ρίζας</title>
+    
+    <script>
+        window.initialRender = function() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        };
+
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global',
+                scale: 0.9
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onload="window.initialRender()"></script>
+
+    <style>
+        /* --- THEME: AMBER / DARK --- */
+        :root {
+            --primary-color: #d97706; 
+            --primary-hover: #b45309;
+            --accent-color: #78350f; 
+            
+            --card-bg: #ffffff;
+            --text-main: #292524; 
+            --text-muted: #78716c; 
+            
+            --info-bg: #f0f9ff;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1;    
+            
+            --success-bg: #f0fdf4;
+            --success-text: #15803d;
+            --error-bg: #fef2f2;
+            --error-text: #991b1b;
+
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42; 
+            background-image: url("data:image/svg+xml,%3Csvg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext { fill: rgba(255, 255, 255, 0.12); font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; user-select: none; }%3C/style%3E%3Ctext x='40' y='60' transform='rotate(-10)' font-size='20'%3E∫ f(x) dx%3C/text%3E%3Ctext x='220' y='80' font-size='28'%3E∑ n=1%3C/text%3E%3Ctext x='380' y='50' transform='rotate(15)' font-size='22'%3EA = πr²%3C/text%3E%3Ctext x='60' y='180' font-size='34'%3E√-1%3C/text%3E%3Ctext x='200' y='220' transform='rotate(-5)' font-size='24'%3Ef(x) = y%3C/text%3E%3Ctext x='350' y='180' font-size='20'%3Elim x→∞%3C/text%3E%3Ctext x='40' y='350' font-size='18'%3Esin²θ + cos²θ = 1%3C/text%3E%3Ctext x='280' y='350' transform='rotate(5)' font-size='26'%3EΔy/Δx%3C/text%3E%3Ctext x='100' y='420' font-size='24'%3Ee^{iπ} + 1 = 0%3C/text%3E%3Ctext x='350' y='420' font-size='32'%3E∂x%3C/text%3E%3Ctext x='180' y='140' font-size='16'%3Ey = mx + b%3C/text%3E%3Ctext x='420' y='280' font-size='22'%3Elog(x)%3C/text%3E%3Ctext x='30' y='250' font-size='30' opacity='0.1'%3E∞%3C/text%3E%3Ctext x='150' y='300' font-size='22' transform='rotate(15)'%3EP(A|B)%3C/text%3E%3C/svg%3E");
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%; max-width: 1000px;
+            min-height: 750px; 
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; display: flex; flex-direction: column;
+            position: relative; z-index: 10;
+        }
+
+        /* --- UI ELEMENTS --- */
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 0.85rem; font-weight: 500; 
+            color: rgba(0, 0, 0, 0.3); 
+            background: transparent; padding: 4px 8px;
+            z-index: 20; pointer-events: none; user-select: none;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .content-area {
+            padding: 3rem 4rem; flex: 1; display: flex;
+            flex-direction: column; justify-content: center;
+        }
+
+        .slide { display: none; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .slide.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { 
+            font-family: "Georgia", "Times New Roman", serif; font-size: 2.2rem; 
+            margin-bottom: 0.75rem; color: var(--accent-color); letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        
+        .centered-title-slide {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center;
+        }
+        .centered-title-slide h1 {
+            font-family: "Georgia", serif; font-size: 3.5rem; color: var(--accent-color);
+        }
+
+        .tagline { 
+            font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.15em; 
+            font-size: 0.8rem; font-weight: 700; color: var(--primary-color); 
+            margin-bottom: 1rem; display: block; 
+        }
+
+        p { font-size: 1.2rem; line-height: 1.6; color: var(--text-main); margin-bottom: 1.2rem; opacity: 0.9; }
+
+        /* Lists */
+        .learning-list { list-style: none; padding: 0; margin-top: 1rem; }
+        .learning-list li {
+            position: relative; padding-left: 2.5rem; margin-bottom: 1rem;
+            font-size: 1.25rem; color: var(--text-main); line-height: 1.6;
+        }
+        .learning-list li::before {
+            content: "•"; color: var(--primary-color); font-size: 2rem;
+            position: absolute; left: 0.5rem; top: -0.4rem;
+        }
+
+        /* Blocks */
+        .emphasis-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+            border-left: 6px solid var(--primary-color);
+            padding: 2rem; border-radius: 12px; margin: 2rem 0;
+            font-size: 1.2rem; font-family: "Georgia", serif;
+            color: var(--accent-color);
+            box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.15); 
+        }
+        .warning-block {
+            background-color: #fff1f2; border-left: 5px solid #be123c;
+            padding: 1.5rem 2rem; border-radius: 0 12px 12px 0;
+            margin: 1.5rem 0; font-family: "Georgia", serif; font-style: italic;
+            color: #881337; font-size: 1.2rem;
+        }
+
+        /* --- DIAGRAMS --- */
+        .diagram-container {
+            position: relative; width: 100%; max-width: 800px;
+            height: 300px; margin: 20px auto;
+            border: 1px solid #f3f4f6; border-radius: 12px;
+            background: #fff; overflow: hidden;
+        }
+        .diagram-container > svg { width: 100%; height: 100%; cursor: default; }
+        .diagram-container.interactive > svg { cursor: grab; }
+        .diagram-container.interactive > svg:active { cursor: grabbing; }
+
+        .zoom-hint {
+            position: absolute; bottom: 10px; right: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ddd; border-radius: 6px;
+            padding: 6px 12px; font-size: 0.8rem; color: #444;
+            pointer-events: none; opacity: 0; transition: opacity 0.5s;
+            display: flex; gap: 5px; align-items: center; font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .zoom-hint.visible { opacity: 1; }
+
+        /* --- QUIZZES --- */
+        .quiz-stack {
+            display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem;
+        }
+        .quiz-card {
+            background: white; border: 1px solid #e7e5e4; border-radius: 16px; 
+            padding: 1.5rem; display: flex; flex-direction: column; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .quiz-header {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-title { font-weight: bold; color: var(--accent-color); font-size: 1.1rem; }
+        
+        .quiz-options { display: flex; gap: 1rem; margin-top: 1rem; }
+        .choice-btn { 
+            flex: 1; padding: 0.75rem; border: 1px solid #d6d3d1; 
+            background: white; border-radius: 8px; cursor: pointer; 
+            font-weight: 600; color: var(--text-muted); transition: all 0.2s; 
+        }
+        .choice-btn:hover { background: #f5f5f4; color: var(--text-main); border-color: var(--primary-color); }
+        .choice-btn.selected-true { background: var(--success-bg); color: var(--success-text); border-color: #86efac; }
+        .choice-btn.selected-false { background: var(--error-bg); color: var(--error-text); border-color: #fca5a5; }
+
+        .feedback-box { 
+            padding: 1rem; border-radius: 12px; text-align: left; font-size: 0.95rem;
+            animation: slideUp 0.4s; margin-top: 1rem; display: none;
+            background-color: var(--info-bg); border: 1px solid var(--info-border); color: var(--info-text); 
+        }
+        .feedback-box.error { background-color: var(--error-bg); border-color: #fca5a5; color: var(--error-text); }
+        .feedback-box.success { background-color: var(--success-bg); border-color: #86efac; color: var(--success-text); }
+        
+        .retry-btn {
+            background: none; border: none; text-decoration: underline; 
+            color: inherit; font-weight: bold; cursor: pointer; font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* --- NAV --- */
+        .nav-footer { padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4; display: flex; justify-content: space-between; align-items: center; background: #fffcfc; margin-top: auto; }
+        .nav-control { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 12px 18px; color: var(--text-muted); border-radius: 8px; transition: all 0.2s; }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control.hidden { visibility: hidden; pointer-events: none; }
+        .arrow-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+        .nav-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; font-weight: 700; }
+
+        /* Tooltip */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 6px; }
+        .info-badge { display: inline-flex; justify-content: center; align-items: center; width: 20px; height: 20px; border-radius: 50%; background-color: #e0f2fe; color: #0369a1; font-family: sans-serif; font-weight: bold; font-size: 13px; cursor: pointer; transition: all 0.2s ease; vertical-align: middle; border: 1px solid #bae6fd; }
+        .tooltip-container:hover .info-badge { background-color: #0284c7; color: white; transform: scale(1.1); }
+        .tooltip-text { visibility: hidden; width: 280px; background-color: #333; color: #fff; text-align: left; border-radius: 8px; padding: 10px; position: absolute; z-index: 100; bottom: 140%; left: 50%; margin-left: -140px; opacity: 0; transition: opacity 0.3s; font-size: 0.9rem; line-height: 1.4; pointer-events: none; }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="slide-counter" id="slideCounter">1 / 11</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <div class="centered-title-slide">
+                    <h1>Κριτήριο Λόγου και Κριτήριο Ρίζας</h1>
+                </div>
+            </div>
+
+            <div class="slide" id="slide2">
+                <span class="tagline">Οπτική Υπενθύμιση</span>
+                <h2>Εκθετικές Ακολουθίες</h2>
+                <div class="diagram-container" id="container2">
+                    <svg id="svg2"></svg>
+                    <div class="zoom-hint" id="hint2">🖱️ Σύρετε για μετακίνηση | 📜 Κύλιση για μεγέθυνση/σμίκρυνση</div>
+                </div>
+                
+
+Μερικές εκθετικές ακολουθίες.
+
+            </div>
+
+            <div class="slide" id="slide3">
+                <span class="tagline">Εισαγωγή</span>
+                <h2>Η Βασική Ιδέα</h2>
+                <p>Τα κριτήρια λόγου και ρίζας μας βοηθούν να εξετάσουμε τη σύγκλιση μιας ακολουθίας $(\alpha_n)_{n\in \mathbb{N}}$.</p>
+                <ul class="learning-list">
+                    <li>Μας βοηθούν να καταλάβουμε τη συμπεριφορά της ακολουθίας, με το να βρίσκουν μια εκθετική ακολουθία που συμπεριφέρεται παρόμοια.</li>
+                    <li>Δηλαδή, βρίσκουν ένα $\theta$ για το οποίο η ακολουθία $(\theta^n)_{n \in \mathbb{N}}$ καταλήγει να αυξάνει με τον ίδιο τρόπο που αυξάνει και η $(\alpha_n)_{n \in \mathbb{N}}$.</li>
+                </ul>
+                <p>Θα δούμε πιο συγκεκριμένα τι σημαίνει αυτό στη συνέχεια...</p>
+            </div>
+
+            <div class="slide" id="slide4">
+                <span class="tagline">Κριτήριο Λόγου</span>
+                <h2>Η βασική ιδέα στο Κριτήριο Λόγου</h2>
+                <p>Κάθε εκθετική ακολουθία $(\theta^n)_{n \in \mathbb{N}}$ χαρακτηρίζεται από τον λόγο δύο διαδοχικών της όρων:</p>
+                <div style="text-align: center; font-size: 1.4rem; margin: 1.5rem;">
+                    $$ \frac{\theta^{n+1}}{\theta^n} = \theta, \quad \forall n \in \mathbb{N} $$
+                </div>
+                <p>Αυτός ο λόγος δύο διαδοχικών όρων μας δίνει την παράμετρο $\theta$, που καθορίζει το εκθετικό.</p>
+                <p>Στην πραγματικότητα, μια εκθετική ακολουθία είναι απλά η ακολουθία που ξεκινάει από το 1 και έχει όλους τους λόγους της ίσους με $\theta$.</p>
+                <div class="emphasis-box">
+                    Θεωρούμε αντίστοιχα τους λόγους για μια τυχαία ακολουθία: $\frac{\alpha_{n+1}}{\alpha_n}, \forall n \in \mathbb{N}$.
+                </div>
+            </div>
+
+            <div class="slide" id="slide5">
+                <span class="tagline">Σύγκριση</span>
+                <h2>Συμπεριφορά Ακολουθίας</h2>
+                <p>Αν η $(\frac{a_{n+1}}{a_n})_{n \in \mathbb{N}}$ συγκλίνει σε έναν αριθμό $\theta$, τότε για μεγάλα $n$, η $(\alpha_n)$ θα αυξάνεται (ή μειώνεται) εξίσου γρήγορα με την $(\theta^n)$.</p>
+                <div class="diagram-container" id="container5">
+                    <svg id="svg5"></svg>
+                    <div class="zoom-hint" id="hint5">🖱️ Σύρετε για μετακίνηση | 📜 Κύλιση για μεγέθυνση/σμίκρυνση</div>
+                </div>
+                <p style="text-align:center; font-size:0.9rem; color:#78716c">Οι ακολουθίες $n^6/6^n$ (Μπλε) και $(1/6)^n$ (Κόκκινο) φθίνουν με παρόμοια ταχύτητα.</p>
+            </div>
+
+            <div class="slide" id="slide6">
+                <span class="tagline">Θεώρημα</span>
+                <h2>Το Κριτήριο Λόγου</h2>
+                <p>Έστω ακολουθία $(\alpha_n)_{n \in \mathbb{N}}$ με $a_n \neq 0$ $\forall n \in \mathbb{N}$.</p>
+                <ul class="learning-list">
+                    <li>Αν η $\left|\frac{\alpha_{n+1}}{\alpha_n}\right|$ συγκλίνει σε αριθμό <strong>> 1</strong>, τότε η $(\alpha_n)$ αποκλίνει. </li>
+                    <li>Αν η $\left|\frac{\alpha_{n+1}}{\alpha_n}\right|$ συγκλίνει σε αριθμό <strong>< 1</strong>, τότε η $(\alpha_n)$ συγκλίνει στο 0.
+                        <span class="tooltip-container"><span class="info-badge">i</span><span class="tooltip-text">Αφού συγκλίνουμε στο 0, η σύγκλιση της $(|\alpha_n|)$ συνεπάγεται τη σύγκλιση της $(\alpha_n)$. Γι' αυτό, μιλάμε για τον λόγο $(\frac{|\alpha_{n+1}|}{|\alpha_n|})$.</span></span>
+                    </li>
+                </ul>
+                <div class="warning-block">
+                    Αν η ακολουθία των λόγων δεν συγκλίνει, ή αν συγκλίνει στο 1, τότε το Κριτήριο Λόγου δεν μπορεί να μας πει κάτι για τη σύγκλιση της $(\alpha_n)$.
+                </div>
+            </div>
+
+            <div class="slide" id="slide7">
+                <span class="tagline">Διαίσθηση</span>
+                <h2>Απόδειξη του Κριτηρίου Λόγου</h2>
+                <p>Η απόδειξη του Κριτηρίου Λόγου χρησιμοποιεί την ιδέα με τα εκθετικά που είδαμε στις πρώτες διαφάνειες.</p>
+                <p>Ωστόσο, το εκθετικό $(\theta^n)$ που κατασκευάζουμε, δεν έχει $\theta = \lim_{n \to \infty}{\left|\frac{a_{n+1}}{a_n}\right|}$, όπως περιμέναμε.</p>
+                <div class="emphasis-box">
+                    Αντ' αυτού, χρησιμοποιούμε ένα $\theta$ που είναι λίγο μικρότερο ή λίγο μεγαλύτερο από το όριο του λόγου.
+                </div>
+                <p>Για ποιον λόγο συμβαίνει αυτό;;</p>
+            </div>
+
+            <div class="slide" id="slide8">
+                <span class="tagline">Εξάσκηση (1/2)</span>
+                
+                <div class="quiz-stack">
+                    <div class="quiz-card" id="q1-card">
+                        <div class="quiz-header">
+                            <span class="quiz-title">1. $\alpha_n = \frac{2^n \cdot n!}{n^n}$ </span>
+                        </div>
+                        <div class="diagram-container" id="container8a" style="height: 200px;">
+                            <svg id="svg8a"></svg>
+                            <div class="zoom-hint" id="hint8a">🖱️ Σύρετε για μετακίνηση | 📜 Κύλιση για μεγέθυνση/σμίκρυνση</div>
+                        </div>
+                        <p style="font-size:1rem; margin-top:10px;">Περιμένεις πως το Κριτήριο Λόγου θα δουλέψει; <span class="tooltip-container"><span class="info-badge">?</span><span class="tooltip-text">Με άλλα λόγια, οι λόγοι θα συγκλίνουν σε κάποιον αριθμό διαφορετικό από το 1;</span></span></p>
+                        <div class="quiz-options">
+                            <button class="choice-btn" onclick="handleQuiz('q1', true, this)">Ναι</button>
+                            <button class="choice-btn" onclick="handleQuiz('q1', false, this)">Όχι</button>
+                        </div>
+                        <div id="q1-feedback" class="feedback-box"></div>
+                    </div>
+
+                    <div class="quiz-card" id="q2-card">
+                         <div class="quiz-header">
+                            <span class="quiz-title">2. $\beta_n = 1 + \frac{1}{n^2}$</span>
+                        </div>
+                        <div class="diagram-container" id="container8b" style="height: 200px;">
+                            <svg id="svg8b"></svg>
+                            <div class="zoom-hint" id="hint8b">🖱️ Σύρετε για μετακίνηση | 📜 Κύλιση για μεγέθυνση/σμίκρυνση</div>
+                        </div>
+                        <p style="font-size:1rem; margin-top:10px;">Το Κριτήριο λόγου θα δουλέψει για αυτήν;</p>
+                        <div class="quiz-options">
+                            <button class="choice-btn" onclick="handleQuiz('q2', false, this)">Ναι</button>
+                            <button class="choice-btn" onclick="handleQuiz('q2', true, this)">Όχι</button>
+                        </div>
+                        <div id="q2-feedback" class="feedback-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" id="slide9">
+                <span class="tagline">Εξάσκηση (2/2)</span>
+
+                <div class="quiz-stack">
+                    <div class="quiz-card" id="q3-card">
+                         <div class="quiz-header">
+                            <span class="quiz-title">3. $\gamma_n = \ln(n)$</span>
+                        </div>
+                        <div class="diagram-container" id="container9a" style="height: 200px;">
+                            <svg id="svg9a"></svg>
+                            <div class="zoom-hint" id="hint9a">🖱️ Σύρετε για μετακίνηση | 📜 Κύλιση για μεγέθυνση/σμίκρυνση</div>
+                        </div>
+                        <p style="font-size:1rem; margin-top:10px;">Το Κριτήριο Λόγου θα δουλέψει;</p>
+                        <div class="quiz-options">
+                            <button class="choice-btn" onclick="handleQuiz('q3', false, this)">Ναι</button>
+                            <button class="choice-btn" onclick="handleQuiz('q3', true, this)">Όχι</button>
+                        </div>
+                        <div id="q3-feedback" class="feedback-box"></div>
+                    </div>
+
+                    <div class="quiz-card" id="q4-card">
+                         <div class="quiz-header">
+                            <span class="quiz-title">4. $\delta_n = \frac{3^n \cdot n!}{n^n}$</span>
+                        </div>
+                        <div class="diagram-container" id="container9b" style="height: 200px;">
+                            <svg id="svg9b"></svg>
+                            <div class="zoom-hint" id="hint9b">🖱️ Σύρετε για μετακίνηση | 📜 Κύλιση για μεγέθυνση/σμίκρυνση</div>
+                        </div>
+                        <p style="font-size:1rem; margin-top:10px;">Το Κριτήριο Λόγου θα δουλέψει;</p>
+                        <div class="quiz-options">
+                            <button class="choice-btn" onclick="handleQuiz('q4', true, this)">Ναι</button>
+                            <button class="choice-btn" onclick="handleQuiz('q4', false, this)">Όχι</button>
+                        </div>
+                        <div id="q4-feedback" class="feedback-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" id="slide10">
+                <span class="tagline">Κριτήριο Ρίζας - Ιδέα</span>
+                <h2>Ένας άλλος ορισμός</h2>
+                <p>Ένας άλλος τρόπος με τον οποίο μπορούμε να ορίσουμε μια εκθετική ακολουθία είναι ο εξής: μια εκθετική ακολουθία ξεκινάει από το 1 και η ν-στή ρίζα των όρων της είναι σταθερή.</p>
+                <div style="text-align: center; font-size: 1.4rem; margin: 1.5rem;">
+                    $$ \sqrt[n]{\theta^n} = \theta, \quad \forall n \in \mathbb{N} $$
+                </div>
+                <p>Πράγματι, όποιο θ και να διαλέξουμε σαν βάση του εκθετικού, έχουμε $\sqrt[n]{\theta^n} = \theta$.</p>
+                <p>Οι εκθετικές ακολουθίες είναι αυτές που μετατρέπονται σε σταθερές αν βάλουμε ν-στή ρίζα στον ν-στο όρο της!</p>
+                <p>Αυτή η παρατήρηση μας δίνει έναν δεύτερο τρόπο να βρίσκουμε σε ποια εκθετική συνάρτηση "μοιάζει" μια ακολουθία $(\alpha_n)$.</p>
+                <div class="emphasis-box">
+                    Τι κριτήριο μπορούμε να φτιάξουμε, χρησιμοποιώντας αυτήν την παρατήρηση; <span class="tooltip-container"><span class="info-badge">?</span><span class="tooltip-text">Θα είναι πολύ παρόμοιο με το Κριτήριο Λόγου</span></span>
+                </div>
+            </div>
+
+            <div class="slide" id="slide11">
+                <span class="tagline">Θεώρημα</span>
+                <h2>Κριτήριο Ρίζας</h2>
+                <p>Έστω $(\alpha_n)$ ακολουθία μη αρνητικών όρων. <span class="tooltip-container"><span class="info-badge">i</span><span class="tooltip-text">Ώστε να μπορούμε να πάρουμε όλες τις ρίζες!</span></span></p>
+                <ul class="learning-list">
+                    <li>Αν η $\sqrt[n]{\alpha_n}$ συγκλίνει σε κάποιον αριθμό <strong>μεγαλύτερο του 1</strong>, τότε η $(\alpha_n)$ αποκλίνει. </li>
+                    <li>Αν η $\sqrt[n]{\alpha_n}$ συγκλίνει σε κάποιον αριθμό <strong>μικρότερο του 1</strong>, τότε η $(\alpha_n)$ συγκλίνει στο 0.</li>
+                </ul>
+            </div>
+
+        </div> 
+        
+        <div class="nav-footer">
+            <button class="nav-control nav-prev hidden" id="prevBtn" onclick="navigate(-1)">
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span class="nav-label" id="prevLabel">Πίσω</span>
+            </button>
+
+            <button class="nav-control nav-next" id="nextBtn" onclick="navigate(1)">
+                <span class="nav-label" id="nextLabel">Επόμενο</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 11; 
+
+        // Slide Titles
+        const slideLabels = { 
+            1: 'Εισαγωγή', 2: 'Εκθετικά', 3: 'Βασική Ιδέα', 
+            4: 'Κριτήριο Λόγου', 5: 'Σύγκριση', 6: 'Θεώρημα Λόγου', 
+            7: 'Απόδειξη', 8: 'Εξάσκηση 1', 9: 'Εξάσκηση 2',
+            10: 'Ιδέα Ρίζας', 11: 'Θεώρημα Ρίζας'
+        };
+
+        function navigate(direction) {
+            currentSlide += direction;
+            if(currentSlide < 1) currentSlide = 1;
+            if(currentSlide > totalSlides) currentSlide = totalSlides;
+            updateUI();
+            document.querySelector('.main-card').scrollTop = 0;
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.slide').forEach(function(s) { s.classList.remove('active'); });
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            const progress = document.getElementById('progressFill');
+            progress.style.width = ((currentSlide / totalSlides) * 100) + '%';
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevLabel = document.getElementById('prevLabel');
+            const nextLabel = document.getElementById('nextLabel');
+            const slideCounter = document.getElementById('slideCounter');
+
+            if (currentSlide === 1) prevBtn.classList.add('hidden');
+            else prevBtn.classList.remove('hidden');
+
+            if (currentSlide === totalSlides) nextBtn.classList.add('hidden');
+            else nextBtn.classList.remove('hidden');
+
+            if (currentSlide > 1) prevLabel.textContent = slideLabels[currentSlide - 1];
+            if (currentSlide < totalSlides) nextLabel.textContent = slideLabels[currentSlide + 1];
+            
+            slideCounter.textContent = currentSlide + ' / ' + totalSlides;
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+            
+            // Logic Triggers
+            if (currentSlide === 2) drawExponentials();
+            if (currentSlide === 5) drawComparison();
+            if (currentSlide === 8) {
+                if(!document.getElementById('svg8a').hasChildNodes()) drawQuiz1(false);
+                if(!document.getElementById('svg8b').hasChildNodes()) drawQuiz2();
+            }
+            if (currentSlide === 9) {
+                if(!document.getElementById('svg9a').hasChildNodes()) drawQuiz3();
+                if(!document.getElementById('svg9b').hasChildNodes()) drawQuiz4(false);
+            }
+        }
+
+        // --- INTERACTIVITY ENGINE ---
+        const graphState = {}; 
+
+        function enableGraphInteraction(svgId, initialViewBox) {
+            const container = document.getElementById(svgId).parentElement;
+            container.classList.add('interactive');
+            document.getElementById(svgId.replace('svg', 'hint')).classList.add('visible');
+
+            graphState[svgId] = {
+                viewBox: { x: initialViewBox.x, y: initialViewBox.y, w: initialViewBox.w, h: initialViewBox.h },
+                initialW: initialViewBox.w, 
+                isDragging: false,
+                lastPos: { x: 0, y: 0 }
+            };
+
+            const svg = document.getElementById(svgId);
+
+            svg.onmousedown = function(e) {
+                graphState[svgId].isDragging = true;
+                graphState[svgId].lastPos = { x: e.clientX, y: e.clientY };
+            };
+
+            window.onmouseup = function() {
+                if (graphState[svgId]) graphState[svgId].isDragging = false;
+            };
+
+            svg.onmousemove = function(e) {
+                if (!graphState[svgId].isDragging) return;
+                const state = graphState[svgId];
+                
+                const dx = e.clientX - state.lastPos.x;
+                const dy = e.clientY - state.lastPos.y;
+                state.lastPos = { x: e.clientX, y: e.clientY };
+
+                const ratioX = state.viewBox.w / svg.clientWidth;
+                const ratioY = state.viewBox.h / svg.clientHeight;
+
+                state.viewBox.x -= dx * ratioX;
+                state.viewBox.y -= dy * ratioY; 
+                
+                updateViewBox(svgId);
+            };
+
+            svg.onwheel = function(e) {
+                e.preventDefault();
+                const state = graphState[svgId];
+                const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+                
+                const oldW = state.viewBox.w;
+                const oldH = state.viewBox.h;
+                
+                state.viewBox.w *= zoomFactor;
+                state.viewBox.h *= zoomFactor;
+                
+                state.viewBox.x -= (state.viewBox.w - oldW) / 2;
+                state.viewBox.y -= (state.viewBox.h - oldH) / 2;
+
+                updateViewBox(svgId);
+                
+                const scale = state.viewBox.w / state.initialW;
+                
+                const circles = svg.querySelectorAll('circle');
+                circles.forEach(function(c) {
+                    const baseR = parseFloat(c.getAttribute('data-base-r') || 3.5);
+                    c.setAttribute('r', baseR * scale);
+                });
+            };
+        }
+
+        function updateViewBox(svgId) {
+            const v = graphState[svgId].viewBox;
+            const svg = document.getElementById(svgId);
+            svg.setAttribute('viewBox', v.x + ' ' + v.y + ' ' + v.w + ' ' + v.h);
+        }
+
+        /* --- PLOT ENGINE --- */
+        function createPlot(svgId, dataSeries, options) {
+            const svg = document.getElementById(svgId);
+            if (!svg) return;
+            if (svg.hasChildNodes() && !options.redraw && !options.forceRedraw) return;
+            svg.innerHTML = ''; 
+
+            const w = svg.parentElement.clientWidth;
+            const h = svg.parentElement.clientHeight;
+            
+            let visibleMaxX = 15; 
+            if (options.initialMaxX) visibleMaxX = options.initialMaxX;
+            
+            let visibleMaxY = 0;
+            dataSeries.forEach(function(series) {
+                series.data.forEach(function(p) {
+                    if (p.x <= visibleMaxX && p.y > visibleMaxY) visibleMaxY = p.y;
+                });
+            });
+            if(options.fixedMaxY) visibleMaxY = options.fixedMaxY;
+            if(visibleMaxY === 0) visibleMaxY = 1;
+
+            const padding = 20;
+            const drawW = w - 2 * padding;
+            const drawH = h - 2 * padding;
+
+            const scaleX = drawW / visibleMaxX;
+            const scaleY = drawH / visibleMaxY;
+
+            function mapX(val) { return padding + val * scaleX; }
+            function mapY(val) { return (h - padding) - val * scaleY; }
+
+            // Extended axes for panning
+            let absMaxX = 0;
+            dataSeries.forEach(function(s) { 
+                s.data.forEach(function(p) { if(p.x > absMaxX) absMaxX = p.x; });
+            });
+            const axisEndX = mapX(absMaxX + 5); 
+            // Also extend Y axis up
+            const axisTopY = mapY(visibleMaxY * 5); 
+
+            const axisPath = 'M ' + padding + ' ' + axisTopY + ' L ' + padding + ' ' + (h-padding) + ' L ' + axisEndX + ' ' + (h-padding);
+            const axis = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            axis.setAttribute("d", axisPath);
+            axis.setAttribute("stroke", "#57534e");
+            axis.setAttribute("stroke-width", "2");
+            axis.setAttribute("fill", "none");
+            svg.appendChild(axis);
+
+            dataSeries.forEach(function(series) {
+                series.data.forEach(function(p, i) {
+                    const cx = mapX(p.x);
+                    const cy = mapY(p.y);
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute("cx", cx); circle.setAttribute("cy", cy); 
+                    
+                    const r = series.isComparison ? 3 : 3.5;
+                    circle.setAttribute("r", r); 
+                    circle.setAttribute("data-base-r", r); 
+                    
+                    circle.setAttribute("fill", series.color);
+                    svg.appendChild(circle);
+                    
+                    if (series.label && i === series.data.length - 2) { 
+                       const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                       text.setAttribute("x", cx + 5); text.setAttribute("y", cy - 5);
+                       text.setAttribute("fill", series.color);
+                       text.setAttribute("font-size", "12");
+                       text.setAttribute("font-weight", "bold");
+                       text.textContent = "θ=" + series.label;
+                       svg.appendChild(text);
+                    }
+                });
+                
+                if (series.isLine) {
+                    let d = "";
+                    series.data.forEach(function(p, i) {
+                        const cx = mapX(p.x);
+                        const cy = mapY(p.y);
+                        if (i === 0) d += 'M ' + cx + ' ' + cy + ' ';
+                        else d += 'L ' + cx + ' ' + cy + ' ';
+                    });
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", d);
+                    path.setAttribute("stroke", series.color);
+                    path.setAttribute("stroke-width", "2");
+                    path.setAttribute("fill", "none");
+                    if(series.dash) path.setAttribute("stroke-dasharray", series.dash);
+                    svg.appendChild(path);
+                }
+            });
+
+            svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+            
+            if (options.enablePanZoom) {
+                enableGraphInteraction(svgId, { x: 0, y: 0, w: w, h: h });
+            }
+        }
+
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            let r = 1; for(let i=2; i<=n; i++) r *= i;
+            return r;
+        }
+
+        function drawExponentials() {
+            const series = [];
+            const bases = [0.5, 0.7, 0.9, 1.1, 1.3, 1.5];
+            const colors = ['#dc2626', '#ea580c', '#d97706', '#65a30d', '#16a34a', '#059669'];
+            
+            bases.forEach(function(b, idx) {
+                const data = [];
+                for(let n=0; n<=20; n++) data.push({x: n, y: Math.pow(b, n)});
+                series.push({ data: data, color: colors[idx], label: b, isLine: false }); 
+            });
+            createPlot('svg2', series, { fixedMaxY: 3, enablePanZoom: true, initialMaxX: 12 });
+        }
+
+        function drawComparison() {
+            const s1 = []; const sRef = [];
+            for(let n=1; n<=40; n++) {
+                s1.push({x: n, y: Math.pow(n, 6)/Math.pow(6, n)});
+                sRef.push({x: n, y: 30 * Math.pow(1/1.5, n)}); 
+            }
+            createPlot('svg5', [
+                { data: s1, color: '#3b82f6', isLine: true, dash: '5,5' }, // Line connecting points
+                { data: sRef, color: '#ef4444', isLine: true, dash: '5,5' } 
+            ], { fixedMaxY: 4, enablePanZoom: true, initialMaxX: 15 });
+        }
+
+        function drawQuiz1(showComparison) {
+            const data = [];
+            const compare = [];
+            const maxN = 100; // Generate 100 points always
+            
+            for(let n=1; n<=maxN; n++) {
+                let y = (Math.pow(2, n) * factorial(n)) / Math.pow(n, n);
+                data.push({x: n, y: y});
+                if(showComparison) { 
+                    compare.push({x: n, y: Math.pow(2/Math.E, n)}); 
+                }
+            }
+            
+            const series = [{ data: data, color: '#3b82f6' }];
+            if(showComparison) {
+                series.push({ data: compare, color: '#ef4444', isComparison: true });
+            }
+            
+            createPlot('svg8a', series, { 
+                redraw: true, 
+                forceRedraw: showComparison,
+                enablePanZoom: true,
+                initialMaxX: 15 
+            });
+        }
+
+        function drawQuiz2() {
+            const data = [];
+            for(let n=1; n<=50; n++) data.push({x: n, y: 1 + 1/(n*n)});
+            createPlot('svg8b', [{ data: data, color: '#3b82f6' }], { fixedMaxY: 2.5, enablePanZoom: true, initialMaxX: 15 });
+        }
+
+        function drawQuiz3() {
+            const data = [];
+            for(let n=1; n<=50; n++) data.push({x: n, y: Math.log(n)});
+            createPlot('svg9a', [{ data: data, color: '#3b82f6' }], { enablePanZoom: true, initialMaxX: 15 });
+        }
+
+        function drawQuiz4(showComparison) {
+            const data = [];
+            const compare = [];
+            const maxN = 100; // Generate 100 points always
+            
+            for(let n=1; n<=maxN; n++) {
+                let y = (Math.pow(3, n) * factorial(n)) / Math.pow(n, n);
+                data.push({x: n, y: y});
+                if(showComparison) compare.push({x: n, y: Math.pow(3/Math.E, n)});
+            }
+            const series = [{ data: data, color: '#3b82f6' }];
+            if(showComparison) series.push({ data: compare, color: '#ef4444', isComparison: true });
+            
+            createPlot('svg9b', series, { 
+                redraw: true,
+                forceRedraw: showComparison,
+                enablePanZoom: true,
+                initialMaxX: 15 
+            });
+        }
+
+        // --- QUIZ LOGIC ---
+        function handleQuiz(qId, isCorrect, btn) {
+            const feedbackEl = document.getElementById(qId + '-feedback');
+            const parent = btn.parentElement;
+            
+            Array.from(parent.children).forEach(function(b) {
+                b.classList.remove('selected-true', 'selected-false');
+            });
+            
+            if (isCorrect) btn.classList.add('selected-true');
+            else btn.classList.add('selected-false');
+
+            feedbackEl.style.display = 'block';
+            
+            const successMessages = {
+                'q1': 'Μάλιστα, για μεγάλο $n$, η ακολουθία συμπεριφέρεται όπως η εκθετική $(2/e)^n$ (δες τα κόκκινα σημεία).',
+                'q2': 'Το όριο των λόγων είναι 1! Επομένως, το Κριτήριο Λόγου δεν μπορεί να μας πει ότι συγκλίνει, παρόλο που βλέπουμε στο σχήμα ότι συγκλίνει.',
+                'q3': 'Το όριο είναι 1, αφού η ακολουθία δεν αυξάνεται σαν κάποια εκθετική!',
+                'q4': 'Η ακολουθία αυξάνει παρόμοια με την εκθετική $(3/e)^n$. Το κριτήριο λειτουργεί (όριο > 1).'
+            };
+
+            const errorMessages = {
+                'q1': 'Η ακολουθία φθίνει προς το μηδέν με εκθετική ταχύτητα $(2/e)^n$ (δες το σχήμα).',
+                'q2': 'Αν παρατηρήσεις, ο λόγος μεταξύ ενός όρου και του επόμενου τείνει στο 1. Οι διαδοχικοί όροι τείνουν να γίνουν ίσοι μεταξύ τους!',
+                'q3': 'Παρόλο που πηγαίνει στο άπειρο, η ακολουθία δεν αυξάνει εκθετικά. Το όριο των λόγων είναι 1.',
+                'q4': 'Η ακολουθία αυξάνεται εκθετικά για μεγάλο n.'
+            };
+
+            let msg = '';
+            let cssClass = '';
+            
+            if(isCorrect) {
+                msg = successMessages[qId];
+                cssClass = 'success';
+                if(qId === 'q1') drawQuiz1(true); 
+                if(qId === 'q4') drawQuiz4(true);
+            } else {
+                msg = errorMessages[qId];
+                cssClass = 'error';
+                if(qId === 'q1') drawQuiz1(true);
+                if(qId === 'q4') drawQuiz4(true);
+            }
+
+            const title = isCorrect ? 'Σωστά!' : 'Λάθος...';
+            const retryHtml = '<button class="retry-btn" onclick="resetQuiz(\'' + qId + '\')">Δοκιμάστε την άλλη απάντηση</button>';
+            
+            feedbackEl.className = 'feedback-box ' + cssClass;
+            feedbackEl.innerHTML = '<strong>' + title + '</strong><br>' + msg + '<br>' + retryHtml;
+            
+            if (window.MathJax) MathJax.typesetPromise([feedbackEl]);
+        }
+        
+        function resetQuiz(qId) {
+            const feedbackEl = document.getElementById(qId + '-feedback');
+            feedbackEl.style.display = 'none';
+            const card = document.getElementById(qId + '-card');
+            const btns = card.querySelectorAll('.choice-btn');
+            btns.forEach(function(b) { b.classList.remove('selected-true', 'selected-false'); });
+            
+            if(qId === 'q1') drawQuiz1(false); 
+            if(qId === 'q4') drawQuiz4(false);
+        }
+
+        updateUI();
+
+    </script>
+</body>
+</html>

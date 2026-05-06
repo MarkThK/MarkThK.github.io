@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Μονότονη και Φραγμένη Ακολουθία</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global',
+                scale: 0.9
+            },
+            options: {
+                menuOptions: {
+                    settings: {
+                        assistiveMml: false
+                    }
+                }
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        /* --- THEME: AMBER / DARK --- */
+        :root {
+            --primary-color: #d97706; 
+            --accent-color: #78350f; 
+            --card-bg: #ffffff;
+            --text-main: #292524; 
+            --text-muted: #78716c; 
+            --info-bg: #e0f2fe;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1; 
+            --question-bg: #fdf4ff;
+            --question-border: #f0abfc;
+            --question-text: #a21caf;   
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            
+            --plot-blue: #3b82f6;
+            --plot-red: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42; 
+            /* Background pattern */
+            background-image: url("data:image/svg+xml,%3Csvg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext { fill: rgba(255, 255, 255, 0.12); font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; user-select: none; }%3C/style%3E%3Ctext x='40' y='60' transform='rotate(-10)' font-size='20'%3E∫ f(x) dx%3C/text%3E%3Ctext x='220' y='80' font-size='28'%3E∑ n=1%3C/text%3E%3Ctext x='380' y='50' transform='rotate(15)' font-size='22'%3EA = πr²%3C/text%3E%3Ctext x='60' y='180' font-size='34'%3E√-1%3C/text%3E%3Ctext x='200' y='220' transform='rotate(-5)' font-size='24'%3Ef(x) = y%3C/text%3E%3Ctext x='350' y='180' font-size='20'%3Elim x→∞%3C/text%3E%3Ctext x='40' y='350' font-size='18'%3Esin²θ + cos²θ = 1%3C/text%3E%3Ctext x='280' y='350' transform='rotate(5)' font-size='26'%3EΔy/Δx%3C/text%3E%3Ctext x='100' y='420' font-size='24'%3Ee^{iπ} + 1 = 0%3C/text%3E%3Ctext x='350' y='420' font-size='32'%3E∂x%3C/text%3E%3Ctext x='180' y='140' font-size='16'%3Ey = mx + b%3C/text%3E%3Ctext x='420' y='280' font-size='22'%3Elog(x)%3C/text%3E%3Ctext x='30' y='250' font-size='30' opacity='0.1'%3E∞%3C/text%3E%3Ctext x='150' y='300' font-size='22' transform='rotate(15)'%3EP(A|B)%3C/text%3E%3C/svg%3E");
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%; max-width: 1000px;
+            min-height: 700px; 
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%; transition: width 0.6s ease;
+        }
+
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 0.85rem; font-weight: 500; 
+            color: rgba(0,0,0,0.3); 
+        }
+
+        .content-area {
+            padding: 3rem 4rem; flex: 1; display: flex;
+            flex-direction: column; justify-content: center;
+        }
+
+        .slide { display: none; animation: fadeIn 0.5s ease; height: 100%; }
+        .slide.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { font-family: "Georgia", serif; font-size: 2.2rem; color: var(--accent-color); margin-bottom: 1.5rem; }
+        
+        p { font-size: 1.35rem; line-height: 1.6; color: var(--text-main); margin-bottom: 1.2rem; }
+
+        .centered-title {
+            font-family: "Georgia", serif; font-size: 3rem; color: var(--accent-color); 
+            text-align: center; margin: auto;
+        }
+
+        /* --- LAYOUTS --- */
+        .columns-container {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            height: 100%;
+        }
+        .col-left { flex: 0 0 40%; }
+        .col-right { flex: 1; }
+
+        /* --- DIAGRAMS --- */
+        .diagram-container {
+            width: 100%;
+            height: 350px;
+            background: #fff;
+            border: 1px solid #e7e5e4;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            padding: 10px;
+            margin: 20px auto;
+        }
+        
+        /* FIX: Apply width/height ONLY to SVGs inside the diagram container */
+        .diagram-container svg { 
+            width: 100%; 
+            height: 100%; 
+            overflow: visible; 
+        }
+        
+        text { font-family: "Georgia", serif; user-select: none; }
+
+        /* --- TOOLTIPS --- */
+        /* Standard margin */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 6px; vertical-align: middle; }
+        
+        .info-badge { 
+            display: inline-flex; justify-content: center; align-items: center; 
+            width: 24px; height: 24px; border-radius: 50%; 
+            font-weight: bold; font-size: 14px; cursor: help; 
+            transition: transform 0.2s; border: 1px solid transparent;
+        }
+        
+        /* Info Style (i) */
+        .type-info .info-badge {
+            background-color: var(--info-bg); color: var(--info-text); border-color: var(--info-border);
+        }
+        /* Question Style (?) */
+        .type-question .info-badge {
+            background-color: var(--question-bg); color: var(--question-text); border-color: var(--question-border);
+        }
+
+        .tooltip-container:hover .info-badge { transform: scale(1.1); }
+        
+        .tooltip-text { 
+            visibility: hidden; width: 320px; background-color: #292524; color: #fff; 
+            text-align: left; border-radius: 8px; padding: 14px; 
+            position: absolute; z-index: 100; bottom: 145%; left: 50%; margin-left: -160px; 
+            opacity: 0; transition: opacity 0.3s; font-size: 1rem; line-height: 1.5; pointer-events: none; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+        }
+        .tooltip-text::after { 
+            content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; 
+            border-width: 6px; border-style: solid; border-color: #292524 transparent transparent transparent; 
+        }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        /* --- NAV (COPIED FROM REFERENCE) --- */
+        .nav-footer { padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4; display: flex; justify-content: space-between; align-items: center; background: #fffcfc; margin-top: auto; }
+        .nav-control { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-weight: bold; color: var(--text-muted); border-radius: 8px; transition: all 0.2s; }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control.hidden { visibility: hidden; pointer-events: none; }
+        .nav-control:disabled { opacity: 0; pointer-events: none; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="slide-counter" id="slideCounter">1 / 5</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <div style="display:flex; height:100%; align-items:center;">
+                    <h1 class="centered-title">Ακολουθία που είναι μονότονη και φραγμένη, συγκλίνει.</h1>
+                </div>
+            </div>
+
+            <div class="slide" id="slide2">
+                <h2>Το θεώρημα για αύξουσες ακολουθίες</h2>
+                <p>Αν μια ακολουθία είναι αύξουσα και είναι άνω φραγμένη, μπορούμε να σκεφτούμε ως εξής την κατάσταση:</p>
+                <p>Τα σημεία της ανεβαίνουν όλο και πιο ψηλά, αλλά δεν μπορούν να φύγουν στο άπειρο.</p>
+                <p>Επομένως η ανοδική πορεία θα γίνεται όλο και πιο αργή, και τα σημεία θα συσσωρεύονται σε κάποιον αριθμό.</p>
+                <p>Ο αριθμός αυτός φαίνεται να είναι το όριο της ακολουθίας.</p>
+                
+                <div class="diagram-container">
+                    <svg id="svg-plot1"></svg>
+                </div>
+            </div>
+
+            <div class="slide" id="slide3">
+                <div class="columns-container">
+                    <div class="col-left">
+                        <div class="diagram-container" style="height: 500px;">
+                            <svg id="svg-plot2"></svg>
+                        </div>
+                    </div>
+                    <div class="col-right">
+                        <h2>Το θεώρημα για φθίνουσες ακολουθίες</h2>
+                        <p>Αντίστοιχα, αν μια φθίνουσα ακολουθία είναι κάτω φραγμένη, δεν μπορεί να κατεβαίνει απεριόριστα, άρα οι όροι της πλησιάζουν κάποιο όριο.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" id="slide4">
+                <h2>Απόδειξη</h2>
+                <p>Η δυσκολία στην απόδειξη είναι το πώς θα χρησιμοποιήσουμε τον ορισμό της σύγκλισης.
+                    <span class="tooltip-container type-info" style="margin-left: 245px;">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Η απαγωγή σε άτοπο δεν μας δίνει κάτι χρήσιμο, οπότε μόνη μας επιλογή είναι ο ορισμός</span>
+                    </span>
+                </p>
+                <p>Συγκεκριμένα, ο ορισμός της σύγκλισης χρειάζεται να έχουμε ένα υποψήφιο σημείο σύγκλισης της ακολουθίας.</p>
+                <p>Και μετά, παίρνοντας ένα τυχαίο $\epsilon > 0$, να δείξουμε ότι πράγματι αυτό είναι το όριο της ακολουθίας.</p>
+                <p>Μπορείς να βρεις ποιο θα μπορούσε να είναι το όριο μιας φθίνουσας και κάτω φραγμένης ακολουθίας;
+                    <span class="tooltip-container type-info">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Μπορούμε να χρησιμοποιήσουμε μια έννοια από το πρώτο κεφάλαιο για να εκφράσουμε το όριο μιας οποιασδήποτε τέτοιας ακολουθίας</span>
+                    </span>
+                </p>
+            </div>
+
+            <div class="slide" id="slide5">
+                <h2>Αυστηρή Απόδειξη</h2>
+                <p>Περιμένουμε η φραγμένη ακολουθία να συγκλίνει στο supremum των όρων της αν είναι αύξουσα και στο infimum, αν είναι φθίνουσα.</p>
+                <p>Επομένως χωρίζουμε δύο διαφορετικές περιπτώσεις, για τις αύξουσες και για τις φθίνουσες ακολουθίες.</p>
+                <p>Το γεγονός ότι το supremum και το infimum ικανοποιούν τον ορισμό της σύγκλισης, προκύπτει από τον $\epsilon$-χαρακτηρισμό!</p>
+                <p>Συγκεκριμένα, ο χαρακτηρισμός μας λέει ότι, όποιο $\epsilon$ και να επιλέξουμε, κάποιο στοιχείο θα βρίσκεται $\epsilon$-κοντά στο supremum (ή στο infimum).</p>
+                <p>Για τη σύγκλιση, από την άλλη, δεν θέλουμε μόνο ένα στοιχείο να είναι $\epsilon$-κοντά, αλλά και όλα τα επόμενα!</p>
+                <p>Λόγω της μονοτονίας, όμως, αν ένα στοιχείο είναι $\epsilon$-κοντά στο supremum, τότε και τα επόμενα θα βρίσκονται $\epsilon$-κοντά επίσης!
+                    <span class="tooltip-container type-question">
+                        <span class="info-badge">?</span>
+                        <span class="tooltip-text">Γιατί ισχύει το τελευταίο;</span>
+                    </span>
+                </p>
+            </div>
+
+        </div>
+
+        <div class="nav-footer">
+            <button class="nav-control" id="prevBtn" onclick="navigate(-1)">← Πίσω</button>
+            <button class="nav-control" id="nextBtn" onclick="navigate(1)">Επόμενο →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 5;
+
+        // Navigation Logic
+        function navigate(dir) {
+            currentSlide += dir;
+            if (currentSlide < 1) currentSlide = 1;
+            if (currentSlide > totalSlides) currentSlide = totalSlides;
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update Slides
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            // Update Progress
+            document.getElementById('progressFill').style.width = ((currentSlide / totalSlides) * 100) + '%';
+            document.getElementById('slideCounter').textContent = currentSlide + ' / ' + totalSlides;
+
+            // Update Buttons
+            document.getElementById('prevBtn').disabled = (currentSlide === 1);
+            document.getElementById('nextBtn').disabled = (currentSlide === totalSlides);
+
+            // Re-render math if needed
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+
+            // Trigger drawings
+            if (currentSlide === 2) setTimeout(drawPlot1, 50);
+            if (currentSlide === 3) setTimeout(drawPlot2, 50);
+        }
+
+        // --- PLOT 1: Increasing Sequence (2D) ---
+        function drawPlot1() {
+            const svg = document.getElementById('svg-plot1');
+            if (svg.hasChildNodes()) return; // Draw only once
+
+            const width = svg.clientWidth || 600;
+            const height = svg.clientHeight || 350;
+            const padding = 40;
+
+            const boundValue = 1.5; 
+            const maxN = 22;
+            const maxY = 1.8; 
+
+            // Scale functions
+            const scaleX = (val) => padding + (val / maxN) * (width - 2 * padding);
+            const scaleY = (val) => (height - padding) - (val / maxY) * (height - 2 * padding);
+
+            // Axes
+            const originX = scaleX(0);
+            const originY = scaleY(0);
+            const endX = scaleX(maxN);
+            
+            const axisPath = `M ${originX} ${scaleY(maxY)} L ${originX} ${originY} L ${endX} ${originY}`;
+            createEl(svg, 'path', { d: axisPath, stroke: '#57534e', 'stroke-width': 2, fill: 'none' });
+
+            // Labels for axes
+            createText(svg, "Δείκτης n", width - 60, height - 10, "#57534e");
+            createText(svg, "Τιμή", 10, 20, "#57534e");
+
+            // Upper Bound Line
+            const boundY = scaleY(boundValue);
+            createEl(svg, 'line', {
+                x1: originX, y1: boundY, x2: endX, y2: boundY,
+                stroke: '#ef4444', 'stroke-width': 2, 'stroke-dasharray': '6,6'
+            });
+            createText(svg, "Άνω Φράγμα (M)", scaleX(10), boundY - 10, "#ef4444");
+
+            // Sequence Data a_n = 1 - 1/n
+            createText(svg, "Ακολουθία (αₙ)", scaleX(12), scaleY(0.6), "#3b82f6");
+            
+            for (let n = 1; n <= 20; n++) {
+                createEl(svg, 'circle', {
+                    cx: scaleX(n), cy: scaleY(1 - 1/n), r: 5, fill: '#3b82f6'
+                });
+            }
+        }
+
+        // --- PLOT 2: Decreasing Sequence (1D) ---
+        function drawPlot2() {
+            const svg = document.getElementById('svg-plot2');
+            if (svg.hasChildNodes()) return; // Draw only once
+
+            const width = svg.clientWidth || 300;
+            const height = svg.clientHeight || 500;
+            const padding = 50;
+
+            const boundValue = 0.5; 
+            const maxY = 2.2; 
+            const minY = 0.0;
+            const centerX = width / 2;
+
+            const scaleY = (val) => (height - padding) - ((val - minY) / (maxY - minY)) * (height - 2 * padding);
+
+            // Vertical Axis
+            const axisTop = scaleY(maxY);
+            const axisBottom = scaleY(minY);
+            
+            createEl(svg, 'path', {
+                d: `M ${centerX} ${axisTop} L ${centerX} ${axisBottom}`,
+                stroke: '#57534e', 'stroke-width': 2
+            });
+            
+            // Arrowhead
+            createEl(svg, 'path', {
+                d: `M ${centerX - 5} ${axisTop + 10} L ${centerX} ${axisTop} L ${centerX + 5} ${axisTop + 10}`,
+                fill: '#57534e'
+            });
+
+            createText(svg, "Τιμή", centerX, axisTop - 15, "#57534e", "middle");
+
+            // Lower Bound
+            const boundY = scaleY(boundValue);
+            createEl(svg, 'line', {
+                x1: centerX - 40, y1: boundY, x2: centerX + 40, y2: boundY,
+                stroke: '#ef4444', 'stroke-width': 3, 'stroke-dasharray': '6,4'
+            });
+            createText(svg, "Κάτω Φράγμα (m)", centerX + 50, boundY + 5, "#ef4444", "start");
+
+            // Sequence a_n = 1 + 1/n
+            const firstTermY = scaleY(2); // 1 + 1/1
+            createText(svg, "Φθίνουσα Ακολουθία", centerX + 25, firstTermY - 5, "#3b82f6", "start");
+            createText(svg, "(αₙ)", centerX + 25, firstTermY + 15, "#3b82f6", "start", true);
+            
+            // Connector line for label
+            createEl(svg, 'line', {
+                x1: centerX + 10, y1: firstTermY, x2: centerX + 20, y2: firstTermY,
+                stroke: '#3b82f6', 'stroke-width': 1
+            });
+
+            for (let n = 1; n <= 15; n++) {
+                createEl(svg, 'circle', {
+                    cx: centerX, cy: scaleY(1 + 1/n), r: 6, fill: '#3b82f6', stroke: 'white', 'stroke-width': 1
+                });
+            }
+        }
+
+        // Helper functions
+        function createEl(svg, type, attrs) {
+            const el = document.createElementNS("http://www.w3.org/2000/svg", type);
+            for (let k in attrs) el.setAttribute(k, attrs[k]);
+            svg.appendChild(el);
+            return el;
+        }
+
+        function createText(svg, text, x, y, color, anchor = "start", italic = false) {
+            const t = createEl(svg, 'text', {
+                x: x, y: y, fill: color, 'font-size': 14, 'text-anchor': anchor
+            });
+            if (italic) t.setAttribute('font-style', 'italic');
+            t.textContent = text;
+        }
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>
