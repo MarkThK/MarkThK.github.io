@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supremum & Infimum | Interactive Lesson</title>
+
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    
+    <script>
+        window.initialRender = function() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        };
+
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)'], ['[', ']']] 
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                menuOptions: {
+                    settings: {
+                        assistiveMml: false
+                    }
+                }
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onload="window.initialRender()"></script>
+
+    <style>
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --primary-color: #d97706; 
+            --primary-hover: #b45309;
+            --accent-color: #78350f; 
+            
+            --card-bg: #ffffff;
+            --text-main: #292524; 
+            --text-muted: #78716c; 
+            
+            --info-bg: #f0f9ff;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1;    
+            
+            --success-bg: #f0fdf4;
+            --success-text: #15803d;
+            --error-bg: #fef2f2;
+            --error-text: #991b1b;
+
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42; 
+            background-image: url("data:image/svg+xml,%3Csvg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext { fill: rgba(255, 255, 255, 0.12); font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; user-select: none; }%3C/style%3E%3Ctext x='40' y='60' transform='rotate(-10)' font-size='20'%3E∫ f(x) dx%3C/text%3E%3Ctext x='220' y='80' font-size='28'%3E∑ n=1%3C/text%3E%3Ctext x='380' y='50' transform='rotate(15)' font-size='22'%3EA = πr²%3C/text%3E%3Ctext x='60' y='180' font-size='34'%3E√-1%3C/text%3E%3Ctext x='200' y='220' transform='rotate(-5)' font-size='24'%3Ef(x) = y%3C/text%3E%3Ctext x='350' y='180' font-size='20'%3Elim x→∞%3C/text%3E%3Ctext x='40' y='350' font-size='18'%3Esin²θ + cos²θ = 1%3C/text%3E%3Ctext x='280' y='350' transform='rotate(5)' font-size='26'%3EΔy/Δx%3C/text%3E%3Ctext x='100' y='420' font-size='24'%3Ee^{iπ} + 1 = 0%3C/text%3E%3Ctext x='350' y='420' font-size='32'%3E∂x%3C/text%3E%3Ctext x='180' y='140' font-size='16'%3Ey = mx + b%3C/text%3E%3Ctext x='420' y='280' font-size='22'%3Elog(x)%3C/text%3E%3Ctext x='30' y='250' font-size='30' opacity='0.1'%3E∞%3C/text%3E%3Ctext x='150' y='300' font-size='22' transform='rotate(15)'%3EP(A|B)%3C/text%3E%3C/svg%3E");
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%; max-width: 900px; min-height: 700px;
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; display: flex; flex-direction: column;
+            position: relative; z-index: 10;
+        }
+
+        /* --- SLIDE COUNTER --- */
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 0.85rem; font-weight: 500; 
+            color: rgba(0, 0, 0, 0.3); 
+            background: transparent; 
+            padding: 4px 8px;
+            z-index: 20;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .content-area {
+            padding: 3rem 4rem; flex: 1; display: flex;
+            flex-direction: column; justify-content: center;
+            overflow-y: auto; 
+        }
+
+        .slide { display: none; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1); width: 100%; }
+        .slide.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { 
+            font-family: "Georgia", "Times New Roman", serif; font-size: 2.5rem; 
+            margin-bottom: 0.75rem; color: var(--accent-color); letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        
+        .tagline { 
+            font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.15em; 
+            font-size: 0.8rem; font-weight: 700; color: var(--primary-color); 
+            margin-bottom: 1rem; display: block; 
+        }
+
+        p { font-size: 1.2rem; line-height: 1.6; color: var(--text-main); margin-bottom: 1.2rem; opacity: 0.9; }
+
+        /* --- Interactive Elements --- */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.8rem;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        button.action-btn {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        button#addBtn { background-color: #2563eb; }
+        button#addBtn:hover { background-color: #1d4ed8; }
+        button#addBtn:disabled { background-color: #93c5fd; cursor: not-allowed; }
+
+        button#jumpBtn { background-color: #7c3aed; }
+        button#jumpBtn:hover { background-color: #6d28d9; }
+        button#jumpBtn:disabled { background-color: #c4b5fd; cursor: not-allowed; }
+
+        button#validateBtn { background-color: #16a34a; display: none; }
+        button#validateBtn:hover { background-color: #15803d; }
+
+        button#clearBtn { background-color: #ef4444; display: none; }
+        button#clearBtn:hover { background-color: #dc2626; }
+
+        .status-area {
+            margin-left: auto;
+            text-align: right;
+            font-size: 0.875rem;
+        }
+        
+        #click-mode-badge {
+            display: none;
+            background-color: #0891b2;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        #feedback-msg {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .success { background-color: #dcfce7; border: 1px solid #16a34a; color: #166534; }
+        .error { background-color: #fee2e2; border: 1px solid #ef4444; color: #991b1b; }
+
+        .crosshair-cursor { cursor: crosshair !important; }
+
+        /* --- BLOCKS --- */
+        .emphasis-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+            border-left: 6px solid var(--primary-color);
+            padding: 2rem; border-radius: 12px; margin: 2rem 0;
+            font-size: 1.35rem; font-family: "Georgia", serif;
+            color: var(--accent-color);
+            box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.15); 
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+            font-size: 1.25rem;
+        }
+        .checklist-icon {
+            color: var(--success-text);
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        /* --- TOOLTIP --- */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 10px; }
+        .info-badge {
+            display: inline-flex; justify-content: center; align-items: center;
+            width: 24px; height: 24px; border-radius: 50%;
+            background-color: #e0f2fe; color: #0369a1; 
+            font-family: sans-serif; font-weight: bold; font-size: 14px;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .tooltip-container:hover .info-badge { background-color: #0284c7; color: white; transform: scale(1.1); }
+        .tooltip-text {
+            visibility: hidden; width: 340px; background-color: #1f2937; color: #fff;
+            text-align: left; border-radius: 8px; padding: 16px;
+            position: absolute; z-index: 100; bottom: 150%; left: 50%; margin-left: -170px;
+            opacity: 0; transition: opacity 0.3s, transform 0.3s; transform: translateY(10px);
+            font-size: 0.95rem; line-height: 1.5;
+            box-shadow: 0 10px 25px -3px rgba(0,0,0,0.4); font-family: -apple-system, sans-serif; font-weight: normal;
+        }
+        .tooltip-text::after {
+            content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px;
+            border-width: 6px; border-style: solid; border-color: #1f2937 transparent transparent transparent;
+        }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; transform: translateY(0); }
+
+        /* --- NAVIGATION --- */
+        .nav-footer {
+            padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fffcfc; margin-top: auto;
+        }
+        .nav-control {
+            background: none; border: none; cursor: pointer;
+            display: flex; align-items: center; gap: 14px; padding: 12px 18px;
+            color: var(--text-muted); border-radius: 8px; transition: all 0.2s;
+        }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control.hidden { visibility: hidden; pointer-events: none; }
+        .arrow-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+        .nav-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; font-weight: 700; }
+        
+        /* Page Numbering */
+        .slide-number {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        /* Plotly Fix */
+        .js-plotly-plot .plotly .modebar { left: 50% !important; transform: translateX(-50%); }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="slide-counter" id="slideCounter">1 / 13</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <span class="tagline">Άσκηση</span>
+                <h2>Άσκηση</h2>
+                <div class="emphasis-box">
+                    Να βρεις το supremum και το infimum του συνόλου:
+                    $$ \{e^{1/n}: n = 1, 2, 3, ...\} $$
+                    αποδεικνύοντας τον ισχυρισμό σου με τον χαρακτηρισμό.
+                </div>
+            </div>
+
+            <div class="slide" id="slide2">
+                <span class="tagline">Οπτικοποίηση</span>
+                <h2>Άσκηση</h2>
+                <p>
+                    Για να βρούμε ποιο είναι το infimum και ποιο το supremum, πρέπει να έχουμε μια εικόνα του συνόλου.
+                </p>
+                <div class="emphasis-box" style="border-color: #0ea5e9; background: #f0f9ff;">
+                    <span style="display:block; font-size: 2rem; margin-bottom: 0.5rem;">✍️</span>
+                    <strong>Άσκηση:</strong><br>
+                    Πάρε ένα χαρτί και ζωγράφισε τους αριθμούς $e^{1/n}$ (για τα διάφορα $n \in \mathbb{N}$) πάνω στην ευθεία των πραγματικών αριθμών.
+                </div>
+            </div>
+
+            <div class="slide" id="slide3">
+                <span class="tagline">Εξερεύνηση</span>
+                <h2>Διαισθητική εύρεση</h2>
+                <p>Δες τα σημεία πάνω στην ευθεία των αριθμών. Στη συνέχεια, κάνε κλικ εκεί που νομίζεις ότι είναι το supremum και το infimum.</p>
+                
+                <div class="controls">
+                    <button id="addBtn" class="action-btn" disabled>Προσθήκη Σημείου</button>
+                    <button id="jumpBtn" class="action-btn" disabled>Γρήγορη Μετάβαση (n=50)</button>
+                    
+                    <button id="validateBtn" class="action-btn">Έλεγχος</button>
+                    <button id="clearBtn" class="action-btn">Επαναφορά</button>
+                    
+                    <div class="status-area">
+                      <div style="font-family: monospace; font-size: 1rem;">
+                        <span id="current-n" style="font-weight:bold; color:#2563eb;">n = 0</span> | 
+                        <span id="current-val" style="color:#4b5563;">-</span>
+                      </div>
+                      <div id="py-status" style="font-size: 0.8rem; color: #6b7280; margin-top:4px;">Φόρτωση Python...</div>
+                      <div id="click-mode-badge"></div>
+                    </div>
+                </div>
+              
+                <div id="feedback-msg"></div>
+              
+                <div id="plot" style="width:100%; height:260px;"></div>
+            </div>
+
+            <div class="slide" id="slide4">
+                <span class="tagline">Θεωρία</span>
+                <h2>Απόδειξη με χαρακτηρισμό supremum</h2>
+                <div class="emphasis-box">
+                    <strong>Άσκηση:</strong><br>
+                    Ζωγράφισε το σχήμα που αντιστοιχεί στον χαρακτηρισμό για το supremum (πρέπει να επιλέξεις μία τυχαία τιμή του $\epsilon$ για να κάνεις το σχήμα).
+                </div>
+                <div class="emphasis-box" style="border-color: #1cb95d3b; background: #f1fff9; color: #991b1b; margin-top: 2rem;">
+                    
+                    Τι θέλουμε να αποδείξουμε;
+                </div>
+            </div>
+
+            <div class="slide" id="slide5">
+                <span class="tagline">Ολοκλήρωση</span>
+                <h2>Ολοκλήρωση απόδειξης</h2>
+                <p>
+                    Εξήγησε για ποιον λόγο, όποιο $\epsilon$ και να διάλεγες, θα υπήρχε πάντοτε ένα στοιχείο του συνόλου μέσα στο διάστημα.
+                </p>
+                <div class="emphasis-box" style="border-color: #10b981; background: #ecfdf5; color: #065f46;">
+                    <span style="font-size: 1.5rem;">📝</span>
+                    Γράψε μια πολύ σύντομη απόδειξη, χρησιμοποιώντας αυτό που είδες στο σχήμα.
+                </div>
+            </div>
+
+            <div class="slide" id="slide6">
+                <span class="tagline">Infimum</span>
+                <h2>Η περίπτωση του infimum</h2>
+                <p>
+                    Αφού το infimum δεν είναι στοιχείο του συνόλου, η απόδειξη για το infimum θα είναι πιο δύσκολη.
+                </p>
+                <p>Ας ζωγραφίσουμε το σχήμα για ένα συγκεκριμένο $\epsilon$.</p>
+                
+                <div id="static-plot-1" style="width:100%; height:200px; margin: 1rem 0;"></div>
+
+                <p>Στη συνέχεια, πρέπει να επιλέξουμε κάποιο στοιχείο που βρίσκεται μέσα στο διάστημα (όπως μας λέει ο χαρακτηρισμός).</p>
+                
+                <p style="margin-top:1.5rem; font-weight:bold;">
+                    Υπάρχει περίπτωση το στοιχείο αυτό να βρίσκεται μέσα στο διάστημα για όλα τα δυνατά $\epsilon$;
+                </p>
+            </div>
+
+            <div class="slide" id="slide7">
+                <span class="tagline">Infimum</span>
+                <h2>Η περίπτωση του infimum</h2>
+                
+                <div class="emphasis-box" style="border-color: #ef4444; background: #fef2f2; color: #991b1b;">
+                    Η απάντηση είναι όχι, το στοιχείο που επιλέγουμε θα πρέπει να εξαρτάται από το $\epsilon$!
+                </div>
+                
+                <div id="static-plot-2" style="width:100%; height:200px; margin: 1rem 0;"></div>
+
+                <p>Ας πούμε ότι θέλουμε να βρούμε ποιο είναι το πρώτο στοιχείο μετά το $\epsilon$.</p>
+                <p>Έτσι, θα έχουμε δείξει ότι υπάρχει κάποιο στοιχείο μέσα στο διάστημα: θα έχουμε έναν γενικό τύπο που να μας δίνει για κάθε $\epsilon$ ένα τέτοιο σημείο.</p>
+                <p>Και άρα θα ξέρουμε ότι ισχύει ο χαρακτηρισμός.</p>
+            </div>
+
+            <div class="slide" id="slide8">
+                <span class="tagline">Συλλογισμός</span>
+                <h2>Ολοκλήρωση Συλλογισμού</h2>
+                <p>
+                    Ο μόνος τρόπος να προσδιορίσουμε το στοιχείο αυτό, είναι να βρούμε σε ποιο $n$ αντιστοιχεί.
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Το σύνολο έχει υπερβολικά άτακτη δομή, για να βρούμε απευθείας το στοιχείο.</span>
+                    </span>
+                </p>
+                <p>
+                    Συγκεκριμένα, το στοιχείο είναι το πρώτο $n$ για το οποίο ικανοποιείται η ανισότητα $e^{1/n} < 1 + \epsilon$.
+                </p>
+
+                <div id="static-plot-3" style="width:100%; height:200px; margin: 1rem 0;"></div>
+            </div>
+
+            <div class="slide" id="slide9">
+                <span class="tagline">Πράξεις</span>
+                <h2>Ολοκλήρωση Συλλογισμού</h2>
+                <p>
+                    Αυτήν την τελευταία ανισότητα μπορούμε να τη λύσουμε. Είναι ισοδύναμη με την:
+                    $$ n > \frac{1}{\ln(1+\epsilon)} $$
+                </p>
+                <p>
+                    Στη συνέχεια, επιλέγουμε τον αμέσως μεγαλύτερο ακέραιο από το $1/\ln(1+\epsilon)$.
+                </p>
+                <div class="emphasis-box" style="border-color: #10b981; background: #ecfdf5; color: #065f46;">
+                    Το στοιχείο του συνόλου που αντιστοιχεί σε αυτόν τον ακέραιο βρίσκεται μέσα στο διάστημα $[1, 1 + \epsilon)$.
+                </div>
+            </div>
+
+            <div class="slide" id="slide10">
+                <span class="tagline">Αυστηροποίηση</span>
+                <h2>Αυστηροποίηση</h2>
+                <p>
+                    Είναι σημαντικό κατά την αυστηροποίηση να εξηγήσουμε γιατί υπάρχει αυτός ο "αμέσως μεγαλύτερος ακέραιος".
+                </p>
+                <ul style="line-height: 1.8; margin-top: 1rem; list-style-type: disc; padding-left: 2rem;">
+                    <li>Πρώτα απ' όλα, το $\mathbb{N}$ δεν είναι άνω φραγμένο, άρα υπάρχει κάποιος ακέραιος που είναι μεγαλύτερος από το $1/\ln(1+\epsilon)$.</li>
+                    <li>Επιπλέον, το σύνολο των ακεραίων που είναι μεγαλύτεροι από το $1/\ln(1+\epsilon)$ έχει ελάχιστο στοιχείο (από την αρχή ελαχίστου!).</li>
+                </ul>
+                <p style="margin-top: 1rem;">
+                    Έτσι, βρίσκουμε τον ακέραιο που θέλαμε. Τον ονομάζουμε $n_0$. Τότε, σύμφωνα με την επίλυση της ανισότητας:
+                </p>
+                
+                <div style="display: flex; align-items: center; justify-content: center; margin: 1.5rem 0;">
+                    <div>$$ n_0 > \frac{1}{\ln(1+\epsilon)} \implies e^{1/n_0} < 1 + \epsilon $$</div>
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">
+                            Ουσιαστικά, με την επίλυση της ανισότητας εφαρμόζουμε και στα δύο μέλη την αντίστροφη της συνάρτησης $f(x) = e^{1/x}$.<br><br>
+                            Η αντίστροφη μετατρέπει τα σημεία του συνόλου στους φυσικούς αριθμούς. Έτσι, το σύνολό μας με την παράξενη δομή, μετατράπηκε στο $\mathbb{N}$, το οποίο έχει ήδη γνωστές ιδιότητες (π.χ. αρχή ελαχίστου).
+                        </span>
+                    </span>
+                </div>
+
+                <div class="emphasis-box" style="margin-top: 1.5rem; border-color: #2563eb; background: #f0f9ff; color: #1e40af;">
+                    Τέλος, το 1 είναι κάτω φράγμα του συνόλου. Έτσι οδηγούμαστε στην αυστηρή απόδειξη.
+                </div>
+            </div>
+
+            <div class="slide" id="slide11">
+                <span class="tagline">Εναλλακτική</span>
+                <h2>Απόδειξη με τον Ορισμό</h2>
+                <p>Ας προσπαθήσουμε τώρα να αποδείξουμε ότι το $e$ είναι το supremum με τον ορισμό. Πρέπει να δείξουμε δύο πράγματα:</p>
+                
+                <div class="checklist-item">
+                    <span class="checklist-icon">✔</span>
+                    <span>Ότι το $e$ είναι άνω φράγμα.</span>
+                </div>
+                <div class="checklist-item">
+                    <span class="checklist-icon">✔</span>
+                    <span>Ότι κάθε άλλο άνω φράγμα θα είναι μεγαλύτερο από το $e$.</span>
+                </div>
+
+                <p>Το πρώτο είναι αρκετά απλό.</p>
+                <div class="emphasis-box" style="font-size: 1rem; padding: 1rem;">
+                    <strong>Hint:</strong> Μπορείς να χρησιμοποιήσεις και γνώσεις από την τρίτη λυκείου!
+                </div>
+            </div>
+
+            <div class="slide" id="slide12">
+                <span class="tagline">Κριτική Σκέψη</span>
+                <h2>Απόδειξη με τον Ορισμό</h2>
+                <p>
+                    Τώρα, προσπάθησε να εξηγήσεις γιατί κάθε άνω φράγμα είναι μεγαλύτερο ή ίσο από το $e$ (απ' όπου προκύπτει ότι το $e$ είναι το ελάχιστο άνω φράγμα).
+                </p>
+                <div class="emphasis-box" style="border-color: #7c3aed; background: #f5f3ff; color: #5b21b6;">
+                    Παρατήρησε το επιχείρημα που αναγκαστικά θα χρησιμοποιήσεις. Θυμάσαι να έχεις ξαναδεί κάποιο παρόμοιο επιχείρημα;
+                </div>
+            </div>
+
+            <div class="slide" id="slide13">
+                <span class="tagline">Συμπέρασμα</span>
+                <h2>Χρήση του $\epsilon$-χαρακτηρισμού</h2>
+                <p>
+                    Γενικά, όταν θέλουμε να αποδείξουμε για ένα σύνολο ποιο είναι το infimum και το supremum του, συνήθως συμφέρει να χρησιμοποιούμε τον χαρακτηρισμό.
+                </p>
+                <p>
+                    Αν προσπαθήσουμε να χρησιμοποιήσουμε τον Ορισμό, η απόδειξή μας θα εμπεριέχει μέσα της την απόδειξη του χαρακτηρισμού!
+                </p>
+                <p>
+                    Θα κάνουμε λοιπόν λίγη παραπάνω δουλειά απ' όση χρειάζεται.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="nav-footer">
+            <button class="nav-control nav-prev hidden" id="prevBtn" onclick="navigate(-1)">
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span class="nav-label" id="prevLabel">Πίσω</span>
+            </button>
+            
+            <span class="slide-number" id="slideNumber">1 / 13</span>
+
+            <button class="nav-control nav-next" id="nextBtn" onclick="navigate(1)">
+                <span class="nav-label" id="nextLabel">Επόμενο</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 13;
+        
+        // --- Navigation Logic ---
+        function navigate(direction) {
+            const nextSlideNum = currentSlide + direction;
+            if (nextSlideNum < 1 || nextSlideNum > totalSlides) return;
+            
+            currentSlide = nextSlideNum;
+            updateUI();
+
+            // Resize Plotly if entering slide 3 (Interactive)
+            if (currentSlide === 3 && window.Plotly) {
+                setTimeout(() => {
+                    Plotly.Plots.resize(document.getElementById('plot'));
+                }, 50);
+            }
+
+            // Trigger Static Plots Render/Resize
+            if (currentSlide === 6 && window.Plotly) {
+                 setTimeout(() => {
+                     if(document.getElementById('static-plot-1').data === undefined) initStaticPlot1();
+                     Plotly.Plots.resize(document.getElementById('static-plot-1'));
+                }, 50);
+            }
+            if (currentSlide === 7 && window.Plotly) {
+                 setTimeout(() => {
+                     if(document.getElementById('static-plot-2').data === undefined) initStaticPlot2();
+                     Plotly.Plots.resize(document.getElementById('static-plot-2'));
+                }, 50);
+            }
+            if (currentSlide === 8 && window.Plotly) {
+                 setTimeout(() => {
+                     if(document.getElementById('static-plot-3').data === undefined) initStaticPlot3();
+                     Plotly.Plots.resize(document.getElementById('static-plot-3'));
+                }, 50);
+            }
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            const progress = document.getElementById('progressFill');
+            progress.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevLabel = document.getElementById('prevLabel');
+            const nextLabel = document.getElementById('nextLabel');
+            const slideNumber = document.getElementById('slideNumber');
+            const slideCounter = document.getElementById('slideCounter'); // NEW
+
+            prevBtn.classList.toggle('hidden', currentSlide === 1);
+            nextBtn.classList.toggle('hidden', currentSlide === totalSlides);
+            
+            slideNumber.textContent = `${currentSlide} / ${totalSlides}`;
+            if(slideCounter) slideCounter.textContent = `${currentSlide} / ${totalSlides}`; // NEW
+            
+            // Re-render math on slide change
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        // --- PLOT HELPERS ---
+        function getCommonData() {
+            const epsilon = 0.5;
+            const infimum = 1.0;
+            const threshold = infimum + epsilon;
+            const nValues = Array.from({length: 50}, (_, i) => i + 1);
+            const xValues = nValues.map(n => Math.exp(1/n));
+            
+            const xInside = xValues.filter(x => x >= infimum && x < threshold);
+            const yInside = new Array(xInside.length).fill(0);
+            const xOutside = xValues.filter(x => x >= threshold);
+            const yOutside = new Array(xOutside.length).fill(0);
+            
+            return { epsilon, infimum, threshold, xInside, yInside, xOutside, yOutside, firstIncluded: xInside[0] };
+        }
+
+        function getCommonLayout() {
+            // UPDATED: No title, dark paper background
+            return {
+                paper_bgcolor: '#020617', // Match plot background
+                plot_bgcolor: '#020617',
+                xaxis: { range: [0.8, 3.0], zeroline: false, showticklabels: true, gridcolor: '#1e293b', tickfont: { color: '#e5e7eb', size: 12 }, title: { text: 'x', font: { color: '#9ca3af' } } },
+                yaxis: { range: [-0.3, 0.4], showgrid: false, zeroline: true, zerolinecolor: '#cbd5e1', zerolinewidth: 3, showticklabels: false, fixedrange: true },
+                showlegend: true,
+                legend: { x: 1, xanchor: 'right', y: 1, bgcolor: 'rgba(255,255,255,0.9)' },
+                margin: { t: 20, b: 40, l: 20, r: 20 } // Reduced top margin since title is gone
+            };
+        }
+
+        function getAnnotations(infimum, threshold) {
+            return [
+                { x: infimum, y: 0, text: '[', showarrow: false, font: { size: 40, color: '#22c55e' }, yanchor: 'middle', xanchor: 'center' },
+                { x: threshold, y: 0, text: ')', showarrow: false, font: { size: 40, color: '#22c55e' }, yanchor: 'middle', xanchor: 'center' },
+                { x: infimum, y: -0.15, text: '1 (Inf)', showarrow: false, font: { size: 12, color: '#ef4444', weight: 'bold' }, yanchor: 'top' },
+                { x: threshold, y: -0.15, text: '1 + ε', showarrow: false, font: { size: 12, color: '#22c55e', weight: 'bold' }, yanchor: 'top' }
+            ];
+        }
+
+        // --- PLOT 1 ---
+        function initStaticPlot1() {
+            const data = getCommonData();
+            const layout = getCommonLayout();
+            layout.annotations = getAnnotations(data.infimum, data.threshold);
+
+            Plotly.newPlot('static-plot-1', [
+                { x: data.xOutside, y: data.yOutside, mode: 'markers', name: 'Εκτός', marker: { size: 12, color: '#fbbf24', line: { color: '#fff', width: 1 } } },
+                { x: data.xInside, y: data.yInside, mode: 'markers', name: 'Εντός', marker: { size: 12, color: '#dc2626', line: { color: '#fff', width: 1 } } }
+            ], layout, { staticPlot: true, responsive: true });
+        }
+
+        // --- PLOT 2 ---
+        function initStaticPlot2() {
+            const data = getCommonData();
+            const layout = getCommonLayout();
+            layout.annotations = getAnnotations(data.infimum, data.threshold);
+            
+            // Add Arrow
+            layout.annotations.push({
+                x: data.firstIncluded, y: 0, xref: 'x', yref: 'y',
+                text: 'Ποιος αριθμός είναι αυτός;',
+                showarrow: true, arrowhead: 2, arrowsize: 1, arrowwidth: 2, arrowcolor: '#4f46e5',
+                ax: 40, ay: -80,
+                font: { size: 14, color: '#4f46e5', weight: 'bold' },
+                bgcolor: 'rgba(255, 255, 255, 0.8)', borderpad: 4, bordercolor: '#4f46e5', borderwidth: 1, rx: 5
+            });
+
+            Plotly.newPlot('static-plot-2', [
+                { x: data.xOutside, y: data.yOutside, mode: 'markers', name: 'Εκτός', marker: { size: 12, color: '#fbbf24', line: { color: '#fff', width: 1 } } },
+                { x: data.xInside, y: data.yInside, mode: 'markers', name: 'Εντός', marker: { size: 12, color: '#dc2626', line: { color: '#fff', width: 1 } } }
+            ], layout, { staticPlot: true, responsive: true });
+        }
+
+        // --- PLOT 3 ---
+        function initStaticPlot3() {
+            const data = getCommonData();
+            const layout = getCommonLayout();
+            layout.annotations = getAnnotations(data.infimum, data.threshold);
+            
+            // Add Arrow
+            layout.annotations.push({
+                x: data.firstIncluded, y: 0, xref: 'x', yref: 'y',
+                text: 'Σε ποιο n αντιστοιχεί αυτό;',
+                showarrow: true, arrowhead: 2, arrowsize: 1, arrowwidth: 2, arrowcolor: '#4f46e5',
+                ax: 40, ay: -80,
+                font: { size: 14, color: '#4f46e5', weight: 'bold' },
+                bgcolor: 'rgba(255, 255, 255, 0.8)', borderpad: 4, bordercolor: '#4f46e5', borderwidth: 1, rx: 5
+            });
+
+            Plotly.newPlot('static-plot-3', [
+                { x: data.xOutside, y: data.yOutside, mode: 'markers', name: 'Εκτός', marker: { size: 12, color: '#fbbf24', line: { color: '#fff', width: 1 } } },
+                { x: data.xInside, y: data.yInside, mode: 'markers', name: 'Εντός', marker: { size: 12, color: '#dc2626', line: { color: '#fff', width: 1 } } }
+            ], layout, { staticPlot: true, responsive: true });
+        }
+
+
+        // --- INTERACTIVE LOGIC (Slide 3) ---
+        let pyReady = false;
+        let currentN = 0;
+        let seqX = [], seqY = [], seqText = [];
+        let userX = [], userY = [], userText = [];
+
+        window.pyscript_ready_js = function() {
+            pyReady = true;
+            document.getElementById('py-status').textContent = 'Python Ready ✔';
+            document.getElementById('addBtn').disabled = false;
+            document.getElementById('jumpBtn').disabled = false;
+            initInteractivePlot();
+            
+            // Pre-init static plots so they are ready
+            initStaticPlot1();
+            initStaticPlot2();
+            initStaticPlot3();
+        };
+
+        function initInteractivePlot() {
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: '#020617', 
+                xaxis: { range: [0.8, 3.0], zeroline: false, showticklabels: true, dtick: 0.2, gridcolor: '#1e293b', tickfont: { color: '#e5e7eb', size: 14 }, title: { text: 'x', font: { color: '#9ca3af' } } },
+                yaxis: { range: [-0.5, 0.5], showgrid: false, zeroline: true, zerolinecolor: '#cbd5e1', zerolinewidth: 2, showticklabels: false, fixedrange: true },
+                hovermode: 'closest', margin: { t: 20, b: 40, l: 20, r: 20 }
+            };
+            const config = { responsive: true, displayModeBar: false };
+            Plotly.newPlot('plot', [
+                { x: [], y: [], mode: 'markers', type: 'scatter', name: 'Ακολουθία', marker: { size: 10, color: '#fbbf24', line: { color: '#fff', width: 1 } }, text: [] },
+                { x: [], y: [], mode: 'markers', type: 'scatter', name: 'Επιλογή', marker: { size: 11, color: '#ef4444', symbol: 'diamond', line: { color: '#fff', width: 2 } }, text: [] }
+            ], layout, config);
+            document.getElementById('plot').addEventListener('click', handlePlotClick);
+        }
+
+        async function addNextPoint() {
+            if (!pyReady) return;
+            currentN += 1;
+            await processPoint(currentN);
+        }
+
+        async function jumpTo50() {
+            if (!pyReady) return;
+            const target = 50;
+            for (let i = currentN + 1; i <= target; i++) {
+                currentN = i;
+                await processPoint(i, false);
+            }
+            redrawPlot();
+            checkState();
+        }
+
+        async function processPoint(n, doRedraw = true) {
+            try {
+                const val = await window.calculate_term(n);
+                seqX.push(val);
+                seqY.push(0);
+                seqText.push(`n=${n}<br>x≈${val.toFixed(4)}`);
+                document.getElementById('current-n').innerText = `n = ${n}`;
+                document.getElementById('current-val').innerText = `x = ${val.toFixed(5)}`;
+                if (doRedraw) { redrawPlot(); checkState(); }
+            } catch (err) { console.error(err); }
+        }
+
+        function redrawPlot() {
+            Plotly.restyle('plot', { x: [seqX, userX], y: [seqY, userY], text: [seqText, userText] });
+        }
+
+        function checkState() {
+            if (currentN >= 50) {
+                document.getElementById('click-mode-badge').style.display = 'inline-block';
+                document.getElementById('click-mode-badge').textContent = 'Λειτουργία Κλικ: Ενεργή';
+                document.getElementById('plot').classList.add('crosshair-cursor');
+                document.getElementById('addBtn').style.display = 'none';
+                document.getElementById('jumpBtn').style.display = 'none';
+                document.getElementById('validateBtn').style.display = 'inline-block';
+                document.getElementById('clearBtn').style.display = 'inline-block';
+            }
+        }
+
+        function handlePlotClick(event) {
+            if (currentN < 50) return;
+            const plotDiv = document.getElementById('plot');
+            const rect = plotDiv.getBoundingClientRect();
+            const xaxis = plotDiv._fullLayout.xaxis;
+            const xVal = xaxis.p2c(event.clientX - rect.left - xaxis._offset);
+            if (xVal < xaxis.range[0] || xVal > xaxis.range[1]) return; 
+
+            if (userX.length < 2) {
+                userX.push(xVal); userY.push(0); userText.push(`Επιλογή<br>x≈${xVal.toFixed(4)}`);
+            } else {
+                let closestIndex = -1; let minDiff = Infinity;
+                for (let i = 0; i < userX.length; i++) {
+                    const diff = Math.abs(userX[i] - xVal);
+                    if (diff < minDiff) { minDiff = diff; closestIndex = i; }
+                }
+                if (closestIndex !== -1) { userX[closestIndex] = xVal; userText[closestIndex] = `Επιλογή<br>x≈${xVal.toFixed(4)}`; }
+            }
+            document.getElementById('feedback-msg').style.display = 'none';
+            redrawPlot();
+        }
+
+        async function checkAnswer() {
+            const msgDiv = document.getElementById('feedback-msg');
+            if (userX.length < 2) {
+                msgDiv.className = 'error'; msgDiv.textContent = 'Επίλεξε 2 σημεία.'; msgDiv.style.display = 'block'; return;
+            }
+            try {
+                const result = await window.check_bounds(userX);
+                if (result) { msgDiv.className = 'success'; msgDiv.innerHTML = "Μπράβο! inf A = 1, sup A = e"; }
+                else { msgDiv.className = 'error'; msgDiv.textContent = "Λάθος. Προσπάθησε ξανά."; }
+                msgDiv.style.display = 'block';
+            } catch (e) { console.error(e); }
+        }
+
+        function clearUserPoints() {
+            userX = []; userY = []; userText = [];
+            document.getElementById('feedback-msg').style.display = 'none';
+            redrawPlot();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI(); 
+            document.getElementById('addBtn').addEventListener('click', addNextPoint);
+            document.getElementById('jumpBtn').addEventListener('click', jumpTo50);
+            document.getElementById('clearBtn').addEventListener('click', clearUserPoints);
+            document.getElementById('validateBtn').addEventListener('click', checkAnswer);
+        });
+
+    </script>
+
+    <script type="py">
+        import math
+        import js
+        from js import window
+
+        def calculate_term(n):
+            if n == 0: return 0
+            return math.exp(1/n)
+
+        def check_bounds(user_points_proxy):
+            points = list(user_points_proxy)
+            found_sup = False
+            found_inf = False
+            epsilon = 0.05
+            e_val = math.e
+            inf_val = 1.0
+            for x in points:
+                if abs(x - e_val) < epsilon: found_sup = True
+                if abs(x - inf_val) < epsilon: found_inf = True
+            return (found_sup and found_inf)
+
+        window.calculate_term = calculate_term
+        window.check_bounds = check_bounds
+        window.pyscript_ready_js()
+    </script>
+
+</body>
+</html>

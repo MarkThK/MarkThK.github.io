@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Απόδειξη Λήμματος | Interactive Learning</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)'], ['[', ']']], // Added brackets for script compatibility
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onload="initialRender()"></script>
+
+    <style>
+        /* --- CSS VARIABLES & THEME (MATCHING "Ορισμός και χαρακτηρισμός supremum.html") --- */
+        :root {
+            /* Warmer Palette Colors */
+            --primary-color: #d97706; /* Warm Amber/Orange */
+            --primary-hover: #b45309;
+            --accent-color: #78350f; /* Deep clay brown */
+            
+            /* Card & Text Colors */
+            --card-bg: #ffffff;
+            --text-main: #292524; /* Warm dark gray */
+            --text-muted: #78716c; /* Warm stone gray */
+            
+            /* Feedback Colors */
+            --info-bg: #f0f9ff;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1;    
+            
+            --success-bg: #f0fdf4;
+            --success-text: #15803d;
+            --error-bg: #fef2f2;
+            --error-text: #991b1b;
+
+            --check-color: #1e3a8a;  /* Dark Blue/Black */
+
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42; /* Slate Grey */
+            /* Exact SVG background from the supremum file */
+            background-image: url("data:image/svg+xml,%3Csvg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext { fill: rgba(255, 255, 255, 0.12); font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; user-select: none; }%3C/style%3E%3Ctext x='40' y='60' transform='rotate(-10)' font-size='20'%3E∫ f(x) dx%3C/text%3E%3Ctext x='220' y='80' font-size='28'%3E∑ n=1%3C/text%3E%3Ctext x='380' y='50' transform='rotate(15)' font-size='22'%3EA = πr²%3C/text%3E%3Ctext x='60' y='180' font-size='34'%3E√-1%3C/text%3E%3Ctext x='200' y='220' transform='rotate(-5)' font-size='24'%3Ef(x) = y%3C/text%3E%3Ctext x='350' y='180' font-size='20'%3Elim x→∞%3C/text%3E%3Ctext x='40' y='350' font-size='18'%3Esin²θ + cos²θ = 1%3C/text%3E%3Ctext x='280' y='350' transform='rotate(5)' font-size='26'%3EΔy/Δx%3C/text%3E%3Ctext x='100' y='420' font-size='24'%3Ee^{iπ} + 1 = 0%3C/text%3E%3Ctext x='350' y='420' font-size='32'%3E∂x%3C/text%3E%3Ctext x='180' y='140' font-size='16'%3Ey = mx + b%3C/text%3E%3Ctext x='420' y='280' font-size='22'%3Elog(x)%3C/text%3E%3Ctext x='30' y='250' font-size='30' opacity='0.1'%3E∞%3C/text%3E%3Ctext x='150' y='300' font-size='22' transform='rotate(15)'%3EP(A|B)%3C/text%3E%3C/svg%3E");
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 900px; 
+            min-height: 700px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- SLIDE COUNTER --- */
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 0.85rem; font-weight: 500; 
+            color: rgba(0, 0, 0, 0.3); 
+            background: transparent; 
+            padding: 4px 8px;
+            z-index: 20;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .content-area {
+            padding: 3rem 4rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide { display: none; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .slide.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { 
+            font-family: "Georgia", "Times New Roman", serif;
+            font-size: 2.5rem; 
+            margin-bottom: 0.75rem; 
+            color: var(--accent-color);
+            letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        
+        .tagline { 
+            font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.15em; 
+            font-size: 0.8rem; font-weight: 700; color: var(--primary-color); 
+            margin-bottom: 1rem; display: block; 
+        }
+
+        p, li { 
+            font-size: 1.2rem; line-height: 1.6; color: var(--text-main); 
+            margin-bottom: 1.2rem; opacity: 0.9;
+        }
+
+        /* --- BLOCKS --- */
+        .info-block {
+            background-color: var(--info-bg); border-left: 5px solid var(--info-text);
+            padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin: 1rem 0; color: #0c4a6e; font-size: 1.15rem;
+        }
+        .emphasis-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+            border-left: 6px solid var(--primary-color);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            font-size: 1.35rem; 
+            font-family: "Georgia", serif;
+            color: var(--accent-color);
+            box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.15); 
+            position: relative;
+        }
+        .exercise-block {
+            background-color: #f8fafc; border: 2px dashed #cbd5e1;
+            padding: 1.5rem; border-radius: 12px; margin-top: 2rem;
+        }
+        .exercise-title {
+            font-weight: 700; text-transform: uppercase; font-size: 0.9rem;
+            color: var(--text-muted); margin-bottom: 0.5rem; display: block;
+        }
+
+        /* --- CANVAS WRAPPER --- */
+        .canvas-wrapper {
+            width: 100%; display: flex; justify-content: center; margin: 1.5rem 0; flex-direction: column; align-items: center;
+        }
+        canvas {
+            background: white; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 100%; height: auto; border: 1px solid #e7e5e4;
+        }
+
+        /* --- TOOLTIP STYLE (EXACT MATCH) --- */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 6px; }
+        .info-badge { 
+            display: inline-flex; justify-content: center; align-items: center; 
+            width: 20px; height: 20px; border-radius: 50%; 
+            background-color: #e0f2fe; color: #0369a1; 
+            font-family: sans-serif; font-weight: bold; font-size: 13px; 
+            cursor: pointer; transition: all 0.2s ease; 
+            vertical-align: 2px; 
+        }
+        .tooltip-container:hover .info-badge { background-color: #0284c7; color: white; transform: scale(1.1); }
+        .tooltip-text { visibility: hidden; width: 350px; background-color: #333; color: #fff; text-align: left; border-radius: 8px; padding: 12px; position: absolute; z-index: 100; bottom: 140%; left: 50%; margin-left: -175px; opacity: 0; transition: opacity 0.3s; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); font-family: -apple-system, sans-serif; font-weight: normal; }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        /* --- HINT OVERLAY --- */
+        .hint-overlay {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 400px;
+            text-align: center;
+            background: #f8fafc; border-radius: 12px; border: 2px dashed #cbd5e1;
+        }
+        .hint-btn {
+            background: var(--primary-color); color: white;
+            border: none; padding: 12px 24px; font-size: 1.1rem; border-radius: 8px;
+            cursor: pointer; margin-top: 20px; font-weight: bold; font-family: -apple-system, sans-serif;
+            transition: background 0.2s;
+        }
+        .hint-btn:hover { background: var(--primary-hover); }
+
+
+        /* --- NAVIGATION --- */
+        .nav-footer { padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4; display: flex; justify-content: space-between; align-items: center; background: #fffcfc; margin-top: auto; }
+        .nav-control { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 12px 18px; color: var(--text-muted); border-radius: 8px; transition: all 0.2s; }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control.hidden { visibility: hidden; pointer-events: none; }
+        .arrow-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+        .nav-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; font-weight: 700; }
+
+        .main-title { font-size: 3.5rem; color: var(--accent-color); font-family: "Georgia", serif; margin-bottom: 1rem; text-align: center; }
+        .sub-title { font-size: 1.5rem; color: var(--text-muted); font-weight: 300; text-align: center; }
+
+        ol { margin-left: 2rem; margin-bottom: 1.5rem; }
+        ol li { margin-bottom: 0.8rem; padding-left: 0.5rem; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="slide-counter" id="slideCounter">1 / 5</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+                    <h1 class="main-title" style="font-size: 2.8rem; text-align:center;">Απόδειξη Λήμματος για την Ύπαρξη Ακέραιου Μέρους</h1>
+                </div>
+            </div>
+
+            <div class="slide" id="slide2">
+                <span class="tagline">Εισαγωγή στην Άσκηση</span>
+                <p>Είναι πολύ σημαντικό να μπορείς να φτιάχνεις μια απόδειξη από μια οπτική/διαισθητική ιδέα.</p>
+                <p>Αυτήν την ικανότητα είχες μια πρώτη ευκαιρία να την εξασκίσεις μέσα από ορισμένες ασκήσεις στις προηγούμενες παρουσιάσεις.</p>
+                
+                <div class="emphasis-box">
+                    <strong>Σημαντικό, όμως, είναι και το αντίστροφο:</strong><br>
+                    Να μπορείς να καταλαβαίνεις την ιδέα πίσω από μια απόδειξη που σου δίνουν έτοιμη.
+                </div>
+                
+                <p>Αυτό θα εξασκήσουμε με αυτήν την άσκηση.</p>
+            </div>
+
+            <div class="slide" id="slide3">
+                <span class="tagline">Θεωρία</span>
+                <h2>Η απόδειξη του Λήμματος βήμα - βήμα</h2>
+                <div style="background: var(--info-bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--accent-color); color: var(--text-main);">
+                    <strong>Λήμμα:</strong> Κάθε μη κενό, κάτω φραγμένο υποσύνολο του $\mathbb{Z}$ έχει ελάχιστο στοιχείο.
+                </div>
+                
+                <p><strong>Απόδειξη:</strong></p>
+                <ol>
+                    <li>Έστω $A$ ένα τέτοιο σύνολο και $x$ ένα κάτω φράγμα του.</li>
+                    <li>Από Αρχιμήδεια Ιδιότητα, υπάρχει $n \in \mathbb{N}$ τέτοιο ώστε $n > -x \implies -n < x$.</li>
+                    <li>Θέτουμε $m = -n$. Γνωρίζουμε για το $m$ ότι $\forall k \in A: m = -n < x \leq k$. Άρα $m$ κάτω φράγμα του $A$ και $m \in \mathbb{Z}$.</li>
+                    <li>Ορίζουμε $B = \{k-m: k \in A\}$. Τότε $B \neq \emptyset$ και $B \subset \mathbb{N}$.
+                        <span class="tooltip-container">
+                            <span class="info-badge">i</span>
+                            <span class="tooltip-text">Γιατί το Α είναι μη κενό και $\forall k \in A: m < k \iff k-m>0$ και $k-m \in \mathbb{Z}$, άρα $k-m \in \mathbb{N}$.</span>
+                        </span>
+                    </li>
+                    <li>Από Αρχή Ελαχίστου, υπάρχει $l_0 = \min(B)$.</li>
+                    <li>Τότε $l_0 \in B \implies \exists k_0 \in A: l_0 = k_0 - m$.</li>
+                    <li>$\forall k \in A: k - m \in B \implies l_0 \leq k-m \implies k_0-m \leq k-m \implies k_0 \leq k$.</li>
+                    <li>Δηλαδή $k_0 \in A$ και $k_0 \leq k \quad \forall k \in A \implies k_0 = \min(A)$.</li>
+                </ol>
+            </div>
+
+            <div class="slide" id="slide4">
+                <span class="tagline">Μεθοδολογία</span>
+                <h2>Πώς προσεγγίζουμε μια τέτοια απόδειξη;</h2>
+                <p>Μια απόδειξη συνήθως ξεκινάει με ορισμούς διαφόρων βοηθητικών αντικειμένων, των οποίων μπορεί να αποδεικνύουμε την ύπαρξη και κάποιες βασικές ιδιότητες που έχουν.</p>
+                <p>Στην πρώτη ανάγνωση της απόδειξης, μας ενδιαφέρει κατά βάση το <strong>τι είναι</strong> αυτά τα αντικείμενα, όχι το γιατί υπάρχουν.
+                    <span class="tooltip-container">
+                        <span class="info-badge">i</span>
+                        <span class="tooltip-text">Π.χ., κρατάμε το ότι υπάρχει ένας ακέραιος $m$ που είναι κάτω φράγμα του $A$. Δεν μας ενδιαφέρει αρχικά πώς αιτιολογούμε την ύπαρξή του.</span>
+                    </span>
+                </p>
+                <p>Αυτό που ψάχνουμε είναι η βασική ιδέα της απόδειξης, η οποία συνήθως βρίσκεται κάπου προς το τέλος.</p>
+                
+                <div class="emphasis-box">
+                    Κατά τη γνώμη σου, ποιο είναι το βασικότερο επιχείρημα που μας δίνει το ελάχιστο του συνόλου $A$;
+                </div>
+                <p>Αφού πιάσουμε τη βασική ιδέα, επιστρέφουμε σε όλες τις υπόλοιπες λεπτομέρειες που αιτιολογούν την ύπαρξη των βοηθητικών αντικειμένων.</p>
+            </div>
+
+            <div class="slide" id="slide5">
+                <span class="tagline">Άσκηση</span>
+                <h2>Η Άσκηση</h2>
+                <p>Βρες τη βασική ιδέα και φτιάξε ένα σχήμα (ή περισσότερα) που να απεικονίζει το πώς προκύπτει το ελάχιστο του συνόλου $A$.</p>
+                <p>Στη συνέχεια, αιτιολόγησε την ύπαρξη του βοηθητικού αντικειμένου που έχεις βάλει στο σχήμα.</p>
+            </div>
+
+        </div> 
+        
+        <div class="nav-footer">
+            <button class="nav-control nav-prev hidden" id="prevBtn" onclick="navigate(-1)">
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span class="nav-label" id="prevLabel">Πίσω</span>
+            </button>
+
+            <button class="nav-control nav-next" id="nextBtn" onclick="navigate(1)">
+                <span class="nav-label" id="nextLabel">Επόμενο</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 5;
+        let hintRevealed = false;
+
+        const slideLabels = { 
+            1: "Τίτλος",
+            2: "Εισαγωγή", 
+            3: "Απόδειξη",
+            4: "Μεθοδολογία",
+            5: "Άσκηση",
+            6: "Hint"
+        };
+
+        function initialRender() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        function navigate(direction) {
+            currentSlide += direction;
+            updateUI();
+        }
+
+        function revealHint() {
+            hintRevealed = true;
+            document.getElementById('hintOverlay').style.display = 'none';
+            document.getElementById('hintContent').style.display = 'block';
+            startTranslationAnimation(); 
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            const progress = document.getElementById('progressFill');
+            progress.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevLabel = document.getElementById('prevLabel');
+            const nextLabel = document.getElementById('nextLabel');
+            const slideCounter = document.getElementById('slideCounter');
+
+            prevBtn.classList.toggle('hidden', currentSlide === 1);
+            nextBtn.classList.toggle('hidden', currentSlide === totalSlides);
+
+            if (currentSlide > 1) prevLabel.textContent = slideLabels[currentSlide - 1];
+            if (currentSlide < totalSlides) nextLabel.textContent = slideLabels[currentSlide + 1];
+            
+            slideCounter.textContent = `${currentSlide} / ${totalSlides}`;
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+
+            // Stop animations
+            stopAnimations();
+
+            // Handle Hint Slide
+            if(currentSlide === 6) {
+                if(hintRevealed) {
+                    startTranslationAnimation();
+                }
+            }
+        }
+
+        // --- CANVAS SETUP ---
+        function initCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            const w = parseInt(canvas.getAttribute('width')) || 800;
+            const h = parseInt(canvas.getAttribute('height')) || 300;
+
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            
+            return { ctx, width: w, height: h };
+        }
+
+        // --- ANIMATION CONTROL ---
+        let reqId;
+
+        function stopAnimations() {
+            if (reqId) cancelAnimationFrame(reqId);
+            reqId = null; 
+        }
+
+        function restartTranslation() {
+            stopAnimations();
+            startTranslationAnimation();
+        }
+
+        // --- ANIMATION: TRANSLATION (Z -> N) ---
+        function startTranslationAnimation() {
+            const setup = initCanvas('c_translation');
+            if (!setup) return;
+            const { ctx, width, height } = setup;
+            
+            let startTime = null;
+            const CENTER_Y = height / 2;
+            const SCALE = 40; 
+            const OFFSET_X = 300; // 0 axis position
+
+            const setA = [-3, -1, 0, 2];
+            const lowerBoundM = -4; 
+            
+            function toPx(val) {
+                return OFFSET_X + val * SCALE;
+            }
+
+            function loop(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const t = timestamp - startTime;
+
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw Number Line
+                ctx.beginPath();
+                ctx.moveTo(20, CENTER_Y);
+                ctx.lineTo(width - 20, CENTER_Y);
+                ctx.strokeStyle = "#333";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw Ticks (integers)
+                ctx.font = "12px Arial";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "top";
+                for (let i = -7; i <= 12; i++) {
+                    const px = toPx(i);
+                    ctx.beginPath();
+                    ctx.moveTo(px, CENTER_Y - 5);
+                    ctx.lineTo(px, CENTER_Y + 5);
+                    ctx.strokeStyle = "#999";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    if(Math.abs(i) % 2 === 0 || i === 0) {
+                        ctx.fillStyle = "#666";
+                        ctx.fillText(i, px, CENTER_Y + 10);
+                    }
+                }
+
+                // Animation Phases
+                let animProgress = 0;
+                let opacityB = 0;
+                let showM = false;
+                let highlightB = false;
+                let highlightA = false;
+
+                if (t > 1000) showM = true;
+                if (t > 2000 && t <= 4000) {
+                    animProgress = (t - 2000) / 2000; 
+                    opacityB = animProgress;
+                } else if (t > 4000) {
+                    animProgress = 1;
+                    opacityB = 1;
+                }
+                
+                if (t > 4000) highlightB = true;
+                if (t > 5500) highlightA = true;
+
+                // Draw Lower Bound m (using theme color)
+                if (showM) {
+                    const pxM = toPx(lowerBoundM);
+                    ctx.strokeStyle = "#d97706";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(pxM, CENTER_Y - 20);
+                    ctx.lineTo(pxM, CENTER_Y + 20);
+                    ctx.stroke();
+                    ctx.fillStyle = "#d97706";
+                    ctx.font = "bold 16px Arial";
+                    ctx.fillText("m", pxM, CENTER_Y - 35);
+                }
+
+                // Draw Set A (Blue)
+                ctx.fillStyle = "#1e3a8a"; 
+                setA.forEach(val => {
+                    const px = toPx(val);
+                    ctx.beginPath();
+                    ctx.arc(px, CENTER_Y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.fillText("A", toPx(-3), CENTER_Y - 30);
+
+                // Animation Vector
+                if (animProgress > 0) {
+                    const shift = -lowerBoundM * SCALE * animProgress;
+                    
+                    // Ghosting A moving to B (Green)
+                    ctx.fillStyle = `rgba(21, 128, 61, ${opacityB})`; 
+                    setA.forEach(val => {
+                        const startPx = toPx(val);
+                        const currentPx = startPx + shift;
+                        ctx.beginPath();
+                        ctx.arc(currentPx, CENTER_Y, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+
+                    // Draw Arrow
+                    if (animProgress < 1) {
+                        const midX = (toPx(0) + toPx(-lowerBoundM))/2;
+                        ctx.strokeStyle = `rgba(21, 128, 61, 0.5)`;
+                        ctx.beginPath();
+                        ctx.moveTo(toPx(0), CENTER_Y - 40);
+                        ctx.lineTo(toPx(0) + shift, CENTER_Y - 40);
+                        ctx.stroke();
+                        ctx.fillText("+ (-m)", midX, CENTER_Y - 60);
+                    }
+                }
+
+                // Highlight Min B
+                if (highlightB) {
+                    const minValB = setA[0] - lowerBoundM; 
+                    const pxMinB = toPx(minValB);
+                    
+                    ctx.strokeStyle = "#d97706"; // Theme Accent
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(pxMinB, CENTER_Y, 8, 0, Math.PI*2);
+                    ctx.stroke();
+                    ctx.fillStyle = "#d97706";
+                    ctx.fillText("min(B)", pxMinB, CENTER_Y + 25);
+                }
+
+                // Highlight Min A
+                if (highlightA) {
+                    const minValA = setA[0];
+                    const pxMinA = toPx(minValA);
+                    
+                    ctx.strokeStyle = "#78350f"; // Theme Dark Accent
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(pxMinA, CENTER_Y, 8, 0, Math.PI*2);
+                    ctx.stroke();
+                    ctx.fillStyle = "#78350f";
+                    ctx.fillText("min(A)", pxMinA, CENTER_Y + 25);
+
+                    // Connection line
+                    ctx.beginPath();
+                    ctx.moveTo(toPx(setA[0]-lowerBoundM), CENTER_Y+20);
+                    ctx.quadraticCurveTo((toPx(setA[0]) + toPx(setA[0]-lowerBoundM))/2, CENTER_Y+60, toPx(setA[0]), CENTER_Y+20);
+                    ctx.strokeStyle = "rgba(120, 53, 15, 0.3)";
+                    ctx.setLineDash([5,5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                reqId = requestAnimationFrame(loop);
+            }
+            reqId = requestAnimationFrame(loop);
+        }
+
+        window.onload = function() {
+            updateUI();
+        };
+
+    </script>
+</body>
+</html>
