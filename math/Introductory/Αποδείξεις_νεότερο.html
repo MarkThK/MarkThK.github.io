@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Μαθηματική Απόδειξη | Interactive Learning</title>
+    
+    <script>
+        window.initialRender = function() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        };
+
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global',
+                scale: 0.9
+            },
+            options: {
+                menuOptions: {
+                    settings: {
+                        assistiveMml: false
+                    }
+                }
+            },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onload="window.initialRender()"></script>
+
+    <style>
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --primary-color: #d97706; 
+            --primary-hover: #b45309;
+            --accent-color: #78350f; 
+            
+            --card-bg: #ffffff;
+            --text-main: #292524; 
+            --text-muted: #78716c; 
+            
+            --info-bg: #f0f9ff;      
+            --info-border: #bae6fd;  
+            --info-text: #0369a1;    
+            
+            --success-bg: #f0fdf4;
+            --success-text: #15803d;
+            --error-bg: #fef2f2;
+            --error-text: #991b1b;
+
+            --check-color: #1e3a8a; 
+
+            --radius: 24px;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            background-color: #333b42; 
+            background-image: url("data:image/svg+xml,%3Csvg width='500' height='500' viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cstyle%3Etext { fill: rgba(255, 255, 255, 0.12); font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; user-select: none; }%3C/style%3E%3Ctext x='40' y='60' transform='rotate(-10)' font-size='20'%3E∫ f(x) dx%3C/text%3E%3Ctext x='220' y='80' font-size='28'%3E∑ n=1%3C/text%3E%3Ctext x='380' y='50' transform='rotate(15)' font-size='22'%3EA = πr²%3C/text%3E%3Ctext x='60' y='180' font-size='34'%3E√-1%3C/text%3E%3Ctext x='200' y='220' transform='rotate(-5)' font-size='24'%3Ef(x) = y%3C/text%3E%3Ctext x='350' y='180' font-size='20'%3Elim x→∞%3C/text%3E%3Ctext x='40' y='350' font-size='18'%3Esin²θ + cos²θ = 1%3C/text%3E%3Ctext x='280' y='350' transform='rotate(5)' font-size='26'%3EΔy/Δx%3C/text%3E%3Ctext x='100' y='420' font-size='24'%3Ee^{iπ} + 1 = 0%3C/text%3E%3Ctext x='350' y='420' font-size='32'%3E∂x%3C/text%3E%3Ctext x='180' y='140' font-size='16'%3Ey = mx + b%3C/text%3E%3Ctext x='420' y='280' font-size='22'%3Elog(x)%3C/text%3E%3Ctext x='30' y='250' font-size='30' opacity='0.1'%3E∞%3C/text%3E%3Ctext x='150' y='300' font-size='22' transform='rotate(15)'%3EP(A|B)%3C/text%3E%3C/svg%3E");
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            /* Width set to 1000px */
+            width: 100%; max-width: 1000px;
+            min-height: 650px; 
+            border-radius: var(--radius); box-shadow: var(--shadow);
+            overflow: hidden; display: flex; flex-direction: column;
+            position: relative; z-index: 10;
+        }
+
+        /* --- SLIDE COUNTER --- */
+        .slide-counter {
+            position: absolute; top: 25px; right: 35px;
+            font-size: 1rem; font-weight: 700; color: var(--text-muted);
+            background: rgba(245, 245, 244, 0.8); padding: 6px 12px;
+            border-radius: 12px; z-index: 20;
+            border: 1px solid #e7e5e4;
+        }
+
+        .progress-container { height: 6px; background: #f5f5f4; width: 100%; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #f59e0b);
+            width: 0%; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .content-area {
+            padding: 3rem 4rem; flex: 1; display: flex;
+            flex-direction: column; justify-content: center;
+        }
+
+        .slide { display: none; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .slide.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 { 
+            font-family: "Georgia", "Times New Roman", serif; font-size: 2.2rem; 
+            margin-bottom: 0.75rem; color: var(--accent-color); letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        
+        .styled-emoji {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+            font-size: 0.6em; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));
+            display: inline-block; transform: rotate(5deg); vertical-align: middle;
+        }
+
+        .tagline { 
+            font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.15em; 
+            font-size: 0.8rem; font-weight: 700; color: var(--primary-color); 
+            margin-bottom: 1rem; display: block; 
+        }
+
+        p { font-size: 1.2rem; line-height: 1.6; color: var(--text-main); margin-bottom: 1.2rem; opacity: 0.9; }
+
+        /* --- LISTS & BLOCKS --- */
+        .learning-list { list-style: none; padding: 0; margin-top: 1rem; }
+        .learning-list li {
+            position: relative; padding-left: 2.5rem; margin-bottom: 1rem;
+            font-size: 1.25rem; color: var(--text-main); line-height: 1.6;
+        }
+        .learning-list li::before {
+            content: "✔"; color: var(--check-color); font-size: 1.4rem;
+            position: absolute; left: 0; top: 0.1rem;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+        }
+
+        .example-block {
+            background-color: #fff7ed; border-left: 5px solid var(--primary-color);
+            padding: 1.5rem 2rem; border-radius: 0 12px 12px 0;
+            margin: 1.5rem 0; font-family: "Georgia", serif; font-style: italic;
+            color: var(--accent-color); font-size: 1.3rem;
+        }
+
+        .warning-block {
+            background-color: #fff1f2; border-left: 5px solid #be123c;
+            padding: 1.5rem 2rem; border-radius: 0 12px 12px 0;
+            margin: 1.5rem 0; font-family: "Georgia", serif; font-style: italic;
+            color: #881337; font-size: 1.3rem;
+        }
+
+        .emphasis-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+            border-left: 6px solid var(--primary-color);
+            padding: 2rem; border-radius: 12px; margin: 2rem 0;
+            font-size: 1.35rem; font-family: "Georgia", serif;
+            color: var(--accent-color);
+            box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.15); 
+            position: relative;
+        }
+        .emphasis-icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+
+        /* --- DIAGRAM STYLES (Scaled Down) --- */
+        .diagram-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            height: 220px; 
+            margin: 15px auto;
+            border: 1px solid #f3f4f6;
+            border-radius: 12px;
+            background: #fff;
+        }
+        
+        .diagram-container > svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        
+        .label {
+            position: absolute; transform: translate(-50%, -50%);
+            white-space: nowrap; color: #333; font-family: "Times New Roman", serif;
+        }
+        .label mjx-container { font-size: inherit !important; }
+        
+        .rotated-equals { transform: translate(-50%, -50%) rotate(90deg); font-weight: bold; }
+
+        /* --- OTHER STYLES --- */
+        .input-challenge {
+            margin-top: 2rem; background: #f8fafc; padding: 1.5rem;
+            border-radius: 12px; border: 1px solid #e2e8f0;
+        }
+        .math-input {
+            width: 100%; padding: 12px; border: 2px solid #cbd5e1;
+            border-radius: 8px; font-size: 1.1rem; font-family: inherit;
+            margin-top: 0.5rem; margin-bottom: 1rem; transition: border-color 0.2s;
+        }
+        .math-input:focus { outline: none; border-color: var(--primary-color); }
+        .check-btn {
+            background-color: var(--primary-color); color: white; border: none;
+            padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem;
+        }
+        
+        /* Drag & Drop */
+        .sortable-wrapper { display: grid; grid-template-columns: 40px 1fr; gap: 1rem; margin-top: 2rem; align-items: start; }
+        .numbers-col { display: flex; flex-direction: column; gap: 1rem; padding-top: 1rem; }
+        .static-number { font-weight: 800; font-size: 1.5rem; color: #d6d3d1; height: 60px; display: flex; align-items: center; justify-content: flex-end; }
+        .sortable-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem; position: relative; }
+        .sortable-item {
+            background: #fff; border: 2px solid #e7e5e4; border-radius: 12px; padding: 1rem 1.5rem; cursor: grab; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); height: 60px; box-sizing: border-box; transition: box-shadow 0.2s, border-color 0.2s; 
+        }
+        .sortable-item.animating { transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1); }
+        .sortable-item:hover { border-color: var(--primary-color); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 5; }
+        .sortable-item.dragging { opacity: 0.05; border: 2px dashed #d6d3d1; background: #f5f5f4; box-shadow: none; }
+        .item-text { font-weight: 600; font-size: 1.1rem; color: #374151; }
+        .handle { color: #d6d3d1; font-size: 1.5rem; }
+
+        /* Quiz */
+        .quiz-options { display: flex; gap: 1.5rem; margin: 1.5rem 0; }
+        .radio-card { flex: 1; position: relative; }
+        .radio-card input { position: absolute; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 2; }
+        .radio-card-visual {
+            display: flex; align-items: center; justify-content: center; padding: 1.5rem; border: 2px solid #e7e5e4; border-radius: 16px; font-weight: 600; font-size: 1.2rem; transition: all 0.2s; background: #fff; color: var(--text-muted); text-align: center;
+        }
+        .radio-card input:checked + .radio-card-visual, .radio-card:hover .radio-card-visual { border-color: var(--primary-color); background-color: #fff7ed; color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15); }
+        .feedback-box { padding: 2rem; border-radius: 16px; text-align: center; animation: slideUp 0.4s; margin-top: 1rem; background-color: var(--info-bg); border: 1px solid var(--info-border); color: var(--info-text); }
+        .retry-btn { margin-top: 1rem; background: white; border: 1px solid #d6d3d1; padding: 0.75rem 2rem; border-radius: 8px; cursor: pointer; }
+
+        /* Comparison */
+        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+        .math-card { background: white; border: 1px solid #e7e5e4; border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: transform 0.2s; }
+        .math-card:hover { transform: translateY(-2px); border-color: var(--primary-color); }
+        .math-card h4 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 1.5rem; border-bottom: 1px solid #f5f5f4; padding-bottom: 0.5rem; }
+        .choice-btn { flex: 1; padding: 0.75rem; border: 1px solid #d6d3d1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.2s; }
+        .choice-btn:hover { background: #f5f5f4; color: var(--text-main); }
+        .choice-btn.selected-true { background: var(--success-bg); color: var(--success-text); border-color: #86efac; }
+        .choice-btn.selected-false { background: var(--error-bg); color: var(--error-text); border-color: #fca5a5; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: auto; }
+        .card-feedback { margin-top: 1rem; font-size: 0.9rem; padding: 0.5rem; border-radius: 6px; text-align: center; display: none; }
+
+        /* Navigation */
+        .nav-footer { padding: 1.5rem 4rem; border-top: 1px solid #f5f5f4; display: flex; justify-content: space-between; align-items: center; background: #fffcfc; margin-top: auto; }
+        .nav-control { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 12px 18px; color: var(--text-muted); border-radius: 8px; transition: all 0.2s; }
+        .nav-control:hover { color: var(--accent-color); background: #fff7ed; }
+        .nav-control.hidden { visibility: hidden; pointer-events: none; }
+        .arrow-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+        .nav-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem; font-weight: 700; }
+
+        /* Tooltip */
+        .tooltip-container { position: relative; display: inline-block; margin-left: 6px; }
+        .info-badge { display: inline-flex; justify-content: center; align-items: center; width: 20px; height: 20px; border-radius: 50%; background-color: #e0f2fe; color: #0369a1; font-family: sans-serif; font-weight: bold; font-size: 13px; cursor: pointer; transition: all 0.2s ease; vertical-align: 2px; }
+        .tooltip-container:hover .info-badge { background-color: #0284c7; color: white; transform: scale(1.1); }
+        .tooltip-text { visibility: hidden; width: 320px; background-color: #333; color: #fff; text-align: left; border-radius: 8px; padding: 12px; position: absolute; z-index: 100; bottom: 140%; left: 50%; margin-left: -160px; opacity: 0; transition: opacity 0.3s; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); font-family: -apple-system, sans-serif; font-weight: normal; }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #333 transparent transparent transparent; }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="slide-counter" id="slideCounter">1 / 19</div>
+
+        <div class="content-area">
+            
+            <div class="slide active" id="slide1">
+                <span class="tagline">Εισαγωγή</span>
+                <h2>Πώς φτιάχνω μια απόδειξη; <span class="styled-emoji">🤔</span></h2>
+                <p>Ένα από τα σημαντικότερα skills που πρέπει να έχει ένας μαθηματικός είναι να μπορεί να φτιάχνει αποδείξεις.</p>
+                <p>Σε αυτό το μάθημα θα δούμε:</p>
+                <ul class="learning-list">
+                    <li>Τι σημαίνει το να φτιάξουμε μια σωστή απόδειξη.</li>
+                    <li>Πώς μπορούμε να την κατασκευάσουμε.</li>
+                </ul>
+            </div>
+
+            <div class="slide" id="slide2">
+                <span class="tagline">Πρόταση</span>
+                <h2>Η Πρώτη Πρόταση</h2>
+                <p>Γιατί χρειαζόμαστε Ορισμούς, Θεωρήματα και Αποδείξεις; Ας θεωρήσουμε αυτήν τη μαθηματική Πρόταση:</p>
+                <div class="example-block">"Κάθε αριθμός έχει έναν αριθμό που είναι μικρότερος από αυτόν."</div>
+                <div id="quiz-question-state">
+                    <p><strong>Ισχύει αυτή η πρόταση;</strong></p>
+                    <form id="quizForm">
+                        <div class="quiz-options">
+                            <label class="radio-card">
+                                <input type="radio" name="answer" value="yes" onchange="handleSelection('yes')">
+                                <span class="radio-card-visual">Ναι</span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="answer" value="no" onchange="handleSelection('no')">
+                                <span class="radio-card-visual">Όχι</span>
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                 <div id="quiz-feedback-state" style="display: none;">
+                    <div id="feedback-content"></div>
+                 </div>
+            </div>
+
+            <div class="slide" id="slide3">
+                <span class="tagline">Αυστηρότητα!</span>
+                <h2>Η Σημασία του Ορισμού</h2>
+                <p>Το πιο συνηθισμένο είναι να θεωρήσουμε ότι "αριθμός" μπορεί να είναι οποιοσδήποτε πραγματικός αριθμός ($ \mathbb{R} $). Ωστόσο, υπάρχουν και άλλες δυνατές ερμηνείες, που κάνουν την Πρόταση να μην ισχύει!</p>
+                <div class="emphasis-box">
+                    <span class="emphasis-icon">💡</span>
+                    Στα μαθηματικά, θέλουμε οι Προτάσεις μας να ισχύουν με βεβαιότητα. Να μην υπάρχουν περιθώρια παρεξηγήσεων και παρανοήσεων.
+                </div>
+                <p style="margin-top: 1.5rem; text-align: center; color: var(--primary-color); font-weight: bold;">
+                    Γι' αυτό χρειάζεται να κάνουμε τα πράγματα πιο συγκεκριμένα με ορισμούς.
+                </p>
+            </div>
+
+            <div class="slide" id="slide4">
+                <span class="tagline">Εφαρμογή</span>
+                <h2>Αληθές ή Εσφαλμένο;</h2>
+                <div class="comparison-grid">
+                    <div class="math-card">
+                        <h4>Μαθηματικό Κείμενο 1</h4>
+                        <p class="prop-text"><strong>Ορισμός:</strong> Αριθμός από εδώ και έπειτα σημαίνει πραγματικός αριθμός.</p>
+                        <p class="prop-text"><strong>Πρόταση:</strong> Κάθε αριθμός έχει αριθμό που είναι μικρότερος από αυτόν.</p>
+                        <div class="btn-group" id="btn-group-1">
+                            <button class="choice-btn" onclick="checkCompare(1, true)">Αληθές</button>
+                            <button class="choice-btn" onclick="checkCompare(1, false)">Εσφαλμένο</button>
+                        </div>
+                        <div class="card-feedback" id="feedback-card-1"></div>
+                    </div>
+                    <div class="math-card">
+                        <h4>Μαθηματικό Κείμενο 2</h4>
+                        <p class="prop-text"><strong>Ορισμός:</strong> Ορίζουμε ότι ένας αριθμός θα είναι ένας φυσικός αριθμός.</p>
+                        <p class="prop-text"><strong>Πρόταση:</strong> Κάθε αριθμός έχει μικρότερο αριθμό.</p>
+                        <div class="btn-group" id="btn-group-2">
+                            <button class="choice-btn" onclick="checkCompare(2, true)">Αληθές</button>
+                            <button class="choice-btn" onclick="checkCompare(2, false)">Εσφαλμένο</button>
+                        </div>
+                        <div class="card-feedback" id="feedback-card-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide" id="slide5">
+                <span class="tagline">Ασάφεια</span>
+                <h2>Μια ακόμη λεπτομέρεια...</h2>
+                <p>Η Πρόταση είναι καλά διατυπωμένη; Τι σημαίνει ότι ένας αριθμός "έχει" έναν μικρότερο αριθμό;</p>
+                <div class="warning-block">Υπάρχει μια ασάφεια εδώ, αφού δεν έχουμε ορίσει τι σημαίνει αυτό το "έχει".</div>
+                <p>Πώς θα μπορούσαμε να εξηγήσουμε τη σημασία της πρότασης σε κάποιον που δεν μπορεί να την καταλάβει πλήρως;</p>
+                <p style="font-weight: bold; color: var(--primary-color);">Με άλλα λόγια, πώς μπορούμε να γίνουμε πιο σαφείς;</p>
+            </div>
+
+            <div class="slide" id="slide6">
+                <span class="tagline">Επαναδιατύπωση</span>
+                <h2>Ακριβέστερη Επαναδιατύπωση</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 0.5rem;"><strong>Ορισμός:</strong> Αριθμός σημαίνει πραγματικός αριθμός.</p>
+                <p style="font-size: 1.1rem; margin-bottom: 1.5rem;"><strong>Πρόταση:</strong> Για κάθε αριθμό, υπάρχει κάποιος αριθμός που είναι μικρότερος από αυτόν τον αριθμό.</p>
+                <p style="font-size: 1.05rem; line-height: 1.6; color: #374151;">
+                    Βέβαια, τώρα υπάρχει ένα μπέρδεμα επειδή χρησιμοποιούμε τόσο πολλές φορές τη λέξη αριθμός. Καταλήγουμε να μην είμαστε 100% σίγουροι <strong>για ποιον αριθμό μιλάμε κάθε φορά!</strong>
+                    <span class="tooltip-container"><span class="info-badge">i</span><span class="tooltip-text">Η φράση "μικρότερος από αυτόν τον αριθμό" αναφέρεται στον πρώτο ή στον δεύτερο αριθμό;</span></span>
+                </p>
+                <div class="input-challenge">
+                    <label for="clarityInput" style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Πώς θα μπορούσαμε να κάνουμε πιο σαφή την Πρόταση;</label>
+                    <input type="text" id="clarityInput" class="math-input" placeholder="Γράψε την απάντησή σου εδώ...">
+                    <button class="check-btn" onclick="validateInput()">Έλεγχος</button>
+                    <div id="validation-feedback" class="card-feedback" style="display:none; margin-top: 10px;"></div>
+                </div>
+            </div>
+
+            <div class="slide" id="slide7">
+                <span class="tagline">Στάδια Απόδειξης</span>
+                <h2>Αποδείξεις</h2>
+                <p>Ας πούμε ότι θέλουμε να εξηγήσουμε γιατί ισχύει μια Πρόταση. Θα πρέπει να:</p>
+                <ul class="learning-list">
+                    <li>Έχουμε μια γενική ιδέα του γιατί ισχύει (<strong>Διαίσθηση</strong>)</li>
+                    <li>Να καλύψουμε τα κενά που υπάρχουν στην επιχειρηματολογία μας (<strong>Ολοκλήρωση Επιχειρηματολογίας</strong>)</li>
+                    <li>Να γράψουμε με ακρίβεια τα επιχειρήματα που έχουμε στο μυαλό μας (<strong>Αυστηροποίηση</strong>)</li>
+                </ul>
+            </div>
+
+            <div class="slide" id="slide8">
+                <span class="tagline">Quiz</span>
+                <h2>Στάδια Απόδειξης</h2>
+                <p>Βάλε τα στάδια στη σωστή σειρά!</p>
+                <div class="sortable-wrapper">
+                    <div class="numbers-col">
+                        <div class="static-number">1.</div>
+                        <div class="static-number">2.</div>
+                        <div class="static-number">3.</div>
+                    </div>
+                    <ul class="sortable-list" id="sortable-list"></ul>
+                </div>
+                <div style="margin-top: 2rem;">
+                    <button class="check-btn" onclick="checkOrder()">Έλεγχος Σειράς</button>
+                    <div id="order-feedback" class="card-feedback" style="display:none; margin-top: 10px;"></div>
+                </div>
+            </div>
+
+            <div class="slide" id="slide9">
+                <span class="tagline">Παράδειγμα</span>
+                <h2>Η Ακολουθία Αριθμών</h2>
+                <p>Θεωρούμε τους αριθμούς $1 - \frac{1}{2}$, $\frac{1}{2} - \frac{1}{3}$, $\frac{1}{3} - \frac{1}{4}$ κλπ. (δηλαδή τους αριθμούς $\frac{1}{n} - \frac{1}{n+1}$ για κάθε φυσικό αριθμό $n$).</p>
+                <div class="example-block">
+                    Θέλουμε να αποδείξουμε ότι ο μεγαλύτερος από αυτούς τους αριθμούς είναι ο πρώτος.
+                </div>
+                <p>Υπάρχουν διάφορες επιλογές, όπως να αρχίσουμε να υπολογίζουμε τους αριθμούς έναν προς έναν και να βλέπουμε ότι είναι μικρότεροι από τον πρώτο.</p>
+                <p><strong>Το πρόβλημα:</strong> Αυτή η μέθοδος μας μιλάει μόνο για όσους αριθμούς υπολογίσουμε και δεν μπορεί να μας πει πολλά για τους άπειρους αριθμούς που θέλουμε να δείξουμε ότι είναι μικρότεροι από το $1 - \frac{1}{2}$.</p>
+            </div>
+
+            <div class="slide" id="slide10">
+                <span class="tagline">Πιθανές Λύσεις</span>
+                <h2>Εναλλακτικοί Τρόποι</h2>
+                <p>Μια άλλη προσέγγιση θα μπορούσε να χρησιμοποιήσει τη συνάρτηση $f(x) = \frac{1}{x} - \frac{1}{x+1}$ και να δείξει ότι η συνάρτηση είναι φθίνουσα.</p>
+                <p>Όμορφος τρόπος, αλλά υπάρχει και μια <strong>πιο απλή προσέγγιση</strong>, χωρίς να εμπλέκουμε συναρτήσεις και μονοτονίες!</p>
+                <p style="font-weight: bold; color: var(--primary-color);">Πώς μπορούμε να δούμε πιο καθαρά τι συμβαίνει;</p>
+            </div>
+
+            <div class="slide" id="slide11">
+                <span class="tagline">Οπτικοποίηση</span>
+                <h2>Η Ευθεία των Αριθμών</h2>
+                <p>Μια πολύ λογική κίνηση είναι να χρησιμοποιήσουμε την ευθεία των πραγματικών αριθμών.</p>
+                <p>Αν πάνω στην ευθεία των πραγματικών αριθμών ζωγραφίσουμε τα σημεία $1, \frac{1}{2}, \frac{1}{3}, \dots$ κλπ., τότε σε τι αντιστοιχούν οι αριθμοί $1-\frac{1}{2}, \frac{1}{2} - \frac{1}{3}, \frac{1}{3} - \frac{1}{4}$ κλπ.;</p>
+                <div class="emphasis-box">
+                    <span class="emphasis-icon">👁️</span>
+                    Γίνονται οι <strong>αποστάσεις</strong> μεταξύ των διαδοχικών αριθμών $1, \frac{1}{2}, \frac{1}{3}$ κλπ.!
+                </div>
+            </div>
+
+            <div class="slide" id="slide12">
+                <span class="tagline">Εικόνα</span>
+                <h2>Το Σχήμα</h2>
+                <p>Επομένως, αυτό που θέλουμε να αποδείξουμε (σε οπτικό επίπεδο) είναι ότι η μεγαλύτερη από αυτές τις αποστάσεις είναι η πρώτη. Το οποίο βλέπουμε πράγματι να ισχύει:</p>
+                <div class="diagram-container" id="container1">
+                    <svg id="drawingArea1"></svg>
+                </div>
+            </div>
+
+            <div class="slide" id="slide13">
+                <span class="tagline">Ολοκλήρωση Συλλογισμού</span>
+                <h2>Γιατί ισχύει;</h2>
+                <p>Το θέμα είναι, γιατί η πρώτη απόσταση θα είναι όντως μεγαλύτερη από οποιαδήποτε άλλη απόσταση;</p>
+                <p>Το σχήμα μπορεί να μας βοηθήσει. Αν μετακινήσουμε την απόσταση μεταξύ του $\frac{1}{2}$ και του $1$ προς τα αριστερά, προκύπτει το ακόλουθο:</p>
+                <div class="diagram-container" id="container2">
+                    <svg id="drawingArea2"></svg>
+                </div>
+                <p style="margin-top: 1rem;">Βλέπουμε ότι η πρώτη απόσταση ($1 - 1/2$) καλύπτει ακριβώς το διάστημα $[0, 1/2]$.</p>
+            </div>
+
+            <div class="slide" id="slide14">
+                <span class="tagline">Ολοκλήρωση Συλλογισμού</span>
+                <h2>Η "Επικάλυψη"</h2>
+                <p>Όλες οι υπόλοιπες αποστάσεις φαίνεται να περιέχονται μέσα στην απόσταση μεταξύ του $1$ και του $1/2$ (που μεταφέραμε στο $0-1/2$).</p>
+                <div class="diagram-container" id="container3">
+                    <svg id="drawingArea3"></svg>
+                </div>
+                <p style="margin-top: 1rem;">Ο λόγος που φαίνεται να ισχύει αυτή η "επικάλυψη" είναι ότι το $\frac{1}{n+1}$ είναι μεγαλύτερο από το $0$ και το $\frac{1}{n}$ είναι μικρότερο από το $\frac{1}{2}$.</p>
+            </div>
+
+            <div class="slide" id="slide15">
+                <span class="tagline">Αυστηροποίηση</span>
+                <h2>Μετατροπή σε Μαθηματικά</h2>
+                <p>Επομένως, τα βήματα που κάναμε, τα οποία πρέπει να γράψουμε με συνεπαγωγές αντί για σχήματα είναι τα εξής:</p>
+                <ol style="margin-left: 2rem; line-height: 1.8; font-size: 1.1rem;">
+                    <li>Η απόσταση $1 - \frac{1}{2}$ "μετακινήθηκε" στην απόσταση $\frac{1}{2} - 0$.</li>
+                    <li>Για κάθε $n \ge 2$, έχουμε ότι $0 < \frac{1}{n+1}$ και $\frac{1}{n} < \frac{1}{2}$.</li>
+                    <li>Από αυτό προκύπτει ότι η απόσταση $\frac{1}{n} - \frac{1}{n+1}$ είναι μικρότερη από την $\frac{1}{2} - 0$.</li>
+                    <li>Επομένως έχουμε ότι για κάθε $n \ge 2$, $\frac{1}{n} - \frac{1}{n+1} < 1 - \frac{1}{2}$.</li>
+                </ol>
+            </div>
+
+            <div class="slide" id="slide16">
+                <span class="tagline">Απόδειξη</span>
+                <h2>Η Τελική Απόδειξη</h2>
+                <div class="example-block" style="font-size: 1.1rem;">
+                    <strong>Πρόταση:</strong> Το μεγαλύτερο στοιχείο του συνόλου $\{ \frac{1}{n} - \frac{1}{n+1} \mid n \in \mathbb{N} \}$ προκύπτει για $n=1$.
+                </div>
+                <p><strong>Απόδειξη:</strong></p>
+                <p>Θα δείξουμε ότι το μέγιστο είναι το $1 - \frac{1}{2} = \frac{1}{2}$. Παρατηρούμε ότι $1 - \frac{1}{2} = \frac{1}{2} - 0$.</p>
+                <p>Για κάθε $n \neq 1$, έχουμε $n \ge 2 \implies \frac{1}{n} \le \frac{1}{2}$ και $\frac{1}{n+1} > 0$.</p>
+                <p>Άρα $\frac{1}{n} - \frac{1}{n+1} < \frac{1}{n} \le \frac{1}{2}$.</p>
+                <p>Συνεπώς, κάθε άλλη απόσταση είναι μικρότερη από την πρώτη.</p>
+            </div>
+
+            <div class="slide" id="slide17">
+                <span class="tagline">Συμπέρασμα</span>
+                <h2>Τι Πετύχαμε;</h2>
+                <p>Φυσικά, θα μπορούσαν να υπάρξουν και άλλες αποδείξεις.</p>
+                <p>Όμως, η <strong>οπτικοποίηση</strong> μας έδωσε την ευχέρεια να δημιουργήσουμε μια πρωτότυπη και ιδιαίτερα σύντομη απόδειξη.</p>
+                <p>Δεν χρειάστηκε να τρέξουμε να χρησιμοποιήσουμε κάποιον ήδη γνωστό "τυφλοσούρτη". Δημιουργήσαμε το δικό μας μονοπάτι!</p>
+            </div>
+
+            <div class="slide" id="slide18">
+                <span class="tagline">Μεθοδολογία</span>
+                <h2>Η Συνταγή της Επιτυχίας</h2>
+                <ul class="learning-list">
+                    <li><strong>Οπτικοποίηση:</strong> Βρίσκουμε έναν τρόπο να κατανοήσουμε διαισθητικά το πρόβλημα. Αν το βλέπουμε, μπορούμε να σκεφτούμε δημιουργικά!</li>
+                    <li><strong>Ανάπτυξη Συλλογισμού:</strong> Ρωτάμε "γιατί;" στο σχήμα μέχρι να φτάσουμε σε απλές αλήθειες.</li>
+                    <li><strong>Αυστηροποίηση:</strong> Μεταφράζουμε τις οπτικές παρατηρήσεις σε αυστηρή μαθηματική γλώσσα.</li>
+                </ul>
+            </div>
+
+            <div class="slide" id="slide19">
+                <span class="tagline">Επίλογος</span>
+                <h2>Η διαδρομή συνεχίζεται!</h2>
+                <p>Αν φαίνονται κάπως πολύπλοκα όλα αυτά τα βήματα, είναι απολύτως φυσιολογικό.</p>
+                <p>Στην πραγματικότητα, η ικανότητά σου να δημιουργείς αποδείξεις θα αναπτυχθεί σταδιακά και θα τελειοποιηθεί σε βάθος χρόνων!</p>
+                <div class="emphasis-box">
+                    Αυτό που χρειάζεται είναι <strong>consistency</strong>: μια σταθερή επαφή με τα μαθήματα και την εξάσκηση.
+                </div>
+            </div>
+
+        </div> <div class="nav-footer">
+            <button class="nav-control nav-prev hidden" id="prevBtn" onclick="navigate(-1)">
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span class="nav-label" id="prevLabel">Πίσω</span>
+            </button>
+
+            <button class="nav-control nav-next" id="nextBtn" onclick="navigate(1)">
+                <span class="nav-label" id="nextLabel">Επόμενο</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 19; 
+
+        const slideLabels = { 
+            1: "Εισαγωγή", 
+            2: "Πρόταση", 
+            3: "Αυστηρότητα!", 
+            4: "Εφαρμογή",
+            5: "Ασάφεια",
+            6: "Επαναδιατύπωση",
+            7: "Στάδια Απόδειξης",
+            8: "Quiz",
+            9: "Παράδειγμα",
+            10: "Πιθανές Λύσεις",
+            11: "Οπτικοποίηση",
+            12: "Εικόνα",
+            13: "Ολοκλήρωση Συλλογισμού",
+            14: "Ολοκλήρωση Συλλογισμού",
+            15: "Αυστηροποίηση",
+            16: "Απόδειξη",
+            17: "Συμπέρασμα",
+            18: "Μεθοδολογία",
+            19: "Επίλογος"
+        };
+
+        function navigate(direction) {
+            currentSlide += direction;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById('slide' + currentSlide).classList.add('active');
+
+            const progress = document.getElementById('progressFill');
+            progress.style.width = `${(currentSlide / totalSlides) * 100}%`;
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const prevLabel = document.getElementById('prevLabel');
+            const nextLabel = document.getElementById('nextLabel');
+            const slideCounter = document.getElementById('slideCounter');
+
+            prevBtn.classList.toggle('hidden', currentSlide === 1);
+            nextBtn.classList.toggle('hidden', currentSlide === totalSlides);
+
+            if (currentSlide > 1) prevLabel.textContent = slideLabels[currentSlide - 1];
+            if (currentSlide < totalSlides) nextLabel.textContent = slideLabels[currentSlide + 1];
+            
+            // Update Slide Counter
+            slideCounter.textContent = `${currentSlide} / ${totalSlides}`;
+
+            // Render math and triggers plots if needed
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+            
+            // Trigger Plot Drawing
+            if (currentSlide === 12) drawPlot1();
+            if (currentSlide === 13) drawPlot2(); 
+            if (currentSlide === 14) drawPlot3(); // Plot 3 is the Overlap graph
+        }
+
+        // --- Common Logic for Existing Slides ---
+        const questionState = document.getElementById('quiz-question-state');
+        const feedbackState = document.getElementById('quiz-feedback-state');
+        const feedbackContent = document.getElementById('feedback-content');
+        const quizForm = document.getElementById('quizForm');
+
+        function handleSelection(answer) {
+            questionState.style.display = 'none';
+            feedbackState.style.display = 'block';
+            if (answer === 'no') {
+                feedbackContent.innerHTML = `<div class="feedback-box feedback-info"><div class="feedback-title">Σωστή Παρατήρηση!</div><p style="color: inherit;">Αυτό είναι σωστό για τους <strong>φυσικούς αριθμούς</strong> (1, 2, 3...). Στους φυσικούς, δεν υπάρχει αριθμός μικρότερος από το 1!</p><p style="color: inherit; font-size: 1rem; margin-top: 1rem;">(Όμως, γενικά υπάρχουν <em>πραγματικοί</em> αριθμοί μικρότεροι από το 1)</p><button class="retry-btn" onclick="resetQuiz()">Δοκίμασε την άλλη οπτική</button></div>`;
+            } else {
+                feedbackContent.innerHTML = `<div class="feedback-box feedback-info"><div class="feedback-title">Λογική Απάντηση!</div><p style="color: inherit;">Πολύ φυσιολογική απάντηση! Όμως, για ποιους αριθμούς μιλάμε εδώ; Για όλο το $\\mathbb{R}$;</p><p style="color: inherit;"><strong>Μήπως εννοούμε μόνο τους φυσικούς αριθμούς;</strong></p><button class="retry-btn" onclick="resetQuiz()">Δοκίμασε την άλλη οπτική</button></div>`;
+            }
+            if (window.MathJax) window.MathJax.typesetPromise([feedbackContent]);
+        }
+        function resetQuiz() { quizForm.reset(); questionState.style.display = 'block'; feedbackState.style.display = 'none'; }
+
+        function checkCompare(cardId, isTrue) {
+            const feedbackEl = document.getElementById(`feedback-card-${cardId}`);
+            const isCorrect = (cardId === 1 && isTrue) || (cardId === 2 && !isTrue);
+            feedbackEl.style.display = 'block'; feedbackEl.style.fontWeight = 'bold';
+            if (isCorrect) { feedbackEl.style.color = 'var(--success-text)'; feedbackEl.style.backgroundColor = 'var(--success-bg)'; feedbackEl.textContent = "Σωστό! ✔"; }
+            else { feedbackEl.style.color = 'var(--error-text)'; feedbackEl.style.backgroundColor = 'var(--error-bg)'; feedbackEl.textContent = "Ξανασκέψου το..."; }
+        }
+
+        function validateInput() {
+            const userInput = document.getElementById('clarityInput').value;
+            const feedbackEl = document.getElementById('validation-feedback');
+            
+            function normalize(str) {
+                if (!str) return "";
+                return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").replace(/\s{2,}/g," ").trim();
+            }
+            function levenshtein(s, t) {
+                if (!s) return t.length;
+                if (!t) return s.length;
+                var d = []; for (var i = 0; i <= s.length; i++) { d[i] = new Array(t.length + 1); d[i][0] = i; }
+                for (var j = 0; j <= t.length; j++) { d[0][j] = j; }
+                for (var i = 1; i <= s.length; i++) {
+                    for (var j = 1; j <= t.length; j++) {
+                        var cost = (s[i - 1] === t[j - 1]) ? 0 : 1;
+                        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+                    }
+                }
+                return d[s.length][t.length];
+            }
+
+            let cleanInput = normalize(userInput);
+            const ignored = new Set(["αριθμο", "αριθμος", "αριθμου", "που", "ειναι"]);
+            let tokens = cleanInput.split(" ");
+            let meaningfulTokens = tokens.filter(t => !ignored.has(t));
+            let processedInput = meaningfulTokens.join(" ");
+            
+            const vars = meaningfulTokens.filter(t => t.length === 1 && /[\u03B1-\u03C9a-z]/.test(t));
+            let variablesMatch = false;
+            let hasVariables = vars.length >= 2;
+            if (hasVariables) { if (vars[0] === vars[vars.length - 1]) { variablesMatch = true; } }
+
+            const target = "για καθε x υπαρχει καποιος y μικροτερος απο τον x";
+            const dist = levenshtein(processedInput, target);
+            const similarity = 1 - (dist / Math.max(processedInput.length, target.length));
+            
+            feedbackEl.style.display = 'block';
+            if (variablesMatch && similarity >= 0.70) { 
+                feedbackEl.style.color = 'var(--success-text)'; feedbackEl.style.backgroundColor = 'var(--success-bg)'; feedbackEl.innerHTML = "<strong>Άριστα!</strong> Η πρόταση είναι πλέον σαφής και μαθηματικά ακριβής.";
+            } else if (hasVariables && !variablesMatch) {
+                feedbackEl.style.color = 'var(--error-text)'; feedbackEl.style.backgroundColor = 'var(--error-bg)'; feedbackEl.innerHTML = "Προσοχή: Πρέπει να χρησιμοποιήσεις το <strong>ίδιο σύμβολο</strong> (π.χ. x) για τον πρώτο και τον τελευταίο αριθμό.";
+            } else {
+                feedbackEl.style.color = 'var(--error-text)'; feedbackEl.style.backgroundColor = 'var(--error-bg)'; feedbackEl.innerHTML = "Προσπάθησε να είσαι πιο συγκεκριμένος. Χρησιμοποίησε μεταβλητές (π.χ. x, y).<br><small>Στόχος: \"Για κάθε αριθμό x...\"</small>";
+            }
+        }
+
+        // --- Drag & Drop Logic ---
+        let dragItems = [{ id: 3, text: "Αυστηροποίηση" }, { id: 1, text: "Διαίσθηση" }, { id: 2, text: "Ολοκλήρωση Επιχειρηματολογίας" }];
+        const sortableList = document.getElementById("sortable-list");
+        let draggedItem = null; let lastAfterElement = undefined;
+
+        function renderSortableList() {
+            if (!sortableList) return;
+            sortableList.innerHTML = "";
+            dragItems.forEach((item) => {
+                const li = document.createElement("li");
+                li.classList.add("sortable-item");
+                li.setAttribute("draggable", "true");
+                li.dataset.id = item.id;
+                li.innerHTML = `<span class="item-text">${item.text}</span><span class="handle">☰</span>`;
+                li.addEventListener("dragstart", handleDragStart);
+                li.addEventListener("dragend", handleDragEnd);
+                sortableList.appendChild(li);
+            });
+        }
+        function handleDragStart(e) { draggedItem = this; setTimeout(() => this.classList.add("dragging"), 0); }
+        function handleDragEnd() { this.classList.remove("dragging"); draggedItem = null; lastAfterElement = undefined; updateDragItemsOrder(); }
+        if (sortableList) {
+            renderSortableList();
+            sortableList.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(sortableList, e.clientY);
+                if (afterElement !== lastAfterElement) {
+                    const dragging = document.querySelector('.dragging');
+                    if (dragging) {
+                        if (afterElement == null) sortableList.appendChild(dragging);
+                        else sortableList.insertBefore(dragging, afterElement);
+                        lastAfterElement = afterElement;
+                    }
+                }
+            });
+        }
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect(); const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+                else return closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        function updateDragItemsOrder() {
+            const currentEls = [...sortableList.querySelectorAll(".sortable-item")];
+            dragItems = currentEls.map(el => dragItems.find(i => i.id === parseInt(el.dataset.id)));
+        }
+        function checkOrder() {
+            const feedback = document.getElementById('order-feedback');
+            feedback.style.display = 'block';
+            if (dragItems[0].id === 1 && dragItems[1].id === 2 && dragItems[2].id === 3) {
+                feedback.style.color = 'var(--success-text)'; feedback.style.backgroundColor = 'var(--success-bg)'; feedback.textContent = "Σωστή Σειρά! Μπράβο!";
+            } else {
+                feedback.style.color = 'var(--error-text)'; feedback.style.backgroundColor = 'var(--error-bg)'; feedback.textContent = "Η σειρά δεν είναι σωστή. Προσπάθησε ξανά!";
+            }
+        }
+
+        // --- PLOT LOGIC (Encapsulated & Scaled) ---
+        
+        const scale = 480, startX = 40, n_points = 8;
+        const axisY = 220 * 0.7; // Approx 154px
+        
+        function mapX(val) { return startX + val * scale; }
+
+        function drawGenericLine(svg) {
+            const lineEnd = 1.55; const xEnd = mapX(lineEnd);
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", startX - 20); line.setAttribute("y1", axisY);
+            line.setAttribute("x2", xEnd); line.setAttribute("y2", axisY);
+            line.setAttribute("stroke", "black"); line.setAttribute("stroke-width", "2");
+            svg.appendChild(line);
+            
+            const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            arrow.setAttribute("d", `M ${xEnd} ${axisY} L ${xEnd - 10} ${axisY - 5} L ${xEnd - 10} ${axisY + 5} Z`);
+            arrow.setAttribute("fill", "black"); svg.appendChild(arrow);
+            
+            addLabelToContainer(svg.parentElement, xEnd + 25, axisY + 12, `$\\mathbb{R}$`, 22);
+        }
+
+        function drawCurlyBrace(svg, x1, y1, x2, y2, w) {
+            let dx = x2 - x1, midX = x1 + dx*0.5;
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const d = `M ${x1} ${y1} Q ${x1} ${y1-w/2} ${x1 + dx/4} ${y1-w/2} T ${midX} ${y1-w} M ${x2} ${y2} Q ${x2} ${y2-w/2} ${x2 - dx/4} ${y2-w/2} T ${midX} ${y1-w}`;
+            path.setAttribute("d", d); path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "black"); path.setAttribute("stroke-width", "1.2");
+            svg.appendChild(path);
+        }
+
+        function drawGuideLine(svg, x, yStart, yEnd) {
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            path.setAttribute("x1", x); path.setAttribute("y1", yStart);
+            path.setAttribute("x2", x); path.setAttribute("y2", yEnd);
+            path.setAttribute("stroke", "#d1d5db"); path.setAttribute("stroke-width", "1");
+            path.setAttribute("stroke-dasharray", "3,2"); svg.appendChild(path);
+        }
+
+        function addLabelToContainer(container, x, y, latex, fontSize=16, extraClass="") {
+            const div = document.createElement("div");
+            div.className = "label " + extraClass;
+            div.style.left = `${x}px`; div.style.top = `${y}px`; div.style.fontSize = `${fontSize}px`;
+            div.innerHTML = latex; container.appendChild(div);
+        }
+
+        // --- PLOT 1 (Original Diagram) ---
+        function drawPlot1() {
+            const container = document.getElementById('container1');
+            const svg = document.getElementById('drawingArea1');
+            if(svg.hasChildNodes()) return; // Prevent redraw
+
+            drawGenericLine(svg);
+            
+            [0, 1, 0.5, 0.25, 0.2].forEach(val => {
+                const cx = mapX(val);
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", cx); circle.setAttribute("cy", axisY); circle.setAttribute("r", 4); circle.setAttribute("fill", "black");
+                svg.appendChild(circle);
+                
+                if (val === 0) addLabelToContainer(container, cx, axisY + 30, "0", 16);
+                else if (val === 1) addLabelToContainer(container, cx, axisY + 30, "1", 16);
+                else if (val === 0.5) addLabelToContainer(container, cx, axisY + 30, "1/2", 16);
+                else if (val === 0.25) addLabelToContainer(container, cx, axisY + 40, "$\\frac{1}{n}$", 16);
+                else if (val === 0.2) addLabelToContainer(container, cx, axisY + 40, "$\\frac{1}{n+1}$", 16);
+            });
+
+            const baseY = axisY - 35;
+            drawCurlyBrace(svg, mapX(0.5), baseY, mapX(1), baseY, 10);
+            addLabelToContainer(container, mapX(0.75), baseY - 25, `$1 - \\frac{1}{2}$`, 14);
+            
+            const lowY = axisY - 25;
+            drawCurlyBrace(svg, mapX(0.2), lowY, mapX(0.25), lowY, 8);
+            addLabelToContainer(container, mapX(0.225), lowY - 20, `$\\frac{1}{n} - \\frac{1}{n+1}$`, 12);
+            
+            if(window.MathJax) MathJax.typesetPromise([container]);
+        }
+
+        // --- PLOT 2 (Moved Brace - Slide 13) ---
+        function drawPlot2() {
+            const container = document.getElementById('container2');
+            const svg = document.getElementById('drawingArea2');
+            if(svg.hasChildNodes()) return;
+
+            drawGenericLine(svg);
+            
+            [0, 1, 0.5].forEach(val => {
+                const cx = mapX(val);
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", cx); circle.setAttribute("cy", axisY); circle.setAttribute("r", 4); circle.setAttribute("fill", "black");
+                svg.appendChild(circle);
+                if (val === 0) addLabelToContainer(container, cx, axisY + 30, "0", 16);
+                else if (val === 1) addLabelToContainer(container, cx, axisY + 30, "1", 16);
+                else if (val === 0.5) addLabelToContainer(container, cx, axisY + 30, "1/2", 16);
+            });
+
+            const baseY = axisY - 35;
+            drawCurlyBrace(svg, mapX(0), baseY, mapX(0.5), baseY, 10);
+            addLabelToContainer(container, mapX(0.25), baseY - 25, `$1 - \\frac{1}{2}$`, 14);
+            drawGuideLine(svg, mapX(0.25), baseY - 15, baseY);
+
+            if(window.MathJax) MathJax.typesetPromise([container]);
+        }
+
+        // --- PLOT 3 (Comparison - Slide 14) ---
+        function drawPlot3() {
+            const container = document.getElementById('container3');
+            const svg = document.getElementById('drawingArea3');
+            if(svg.hasChildNodes()) return;
+
+            drawGenericLine(svg);
+            
+            [0, 1, 0.5, 0.25, 0.2].forEach(val => {
+                const cx = mapX(val);
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", cx); circle.setAttribute("cy", axisY); circle.setAttribute("r", 4); circle.setAttribute("fill", "black");
+                svg.appendChild(circle);
+            });
+            
+            addLabelToContainer(container, mapX(0), axisY + 30, "0", 16);
+            addLabelToContainer(container, mapX(0.5), axisY + 30, "1/2", 16);
+            addLabelToContainer(container, mapX(0.25), axisY + 40, "$\\frac{1}{n}$", 16);
+            addLabelToContainer(container, mapX(0.2), axisY + 40, "$\\frac{1}{n+1}$", 16);
+
+            const highY = axisY - 55;
+            drawCurlyBrace(svg, mapX(0), highY, mapX(0.5), highY, 12);
+            addLabelToContainer(container, mapX(0.25), highY - 25, `$1 - \\frac{1}{2}$`, 14);
+            drawGuideLine(svg, mapX(0.25), highY - 15, highY);
+
+            const lowY = axisY - 25;
+            drawCurlyBrace(svg, mapX(0.2), lowY, mapX(0.25), lowY, 8);
+            addLabelToContainer(container, mapX(0.225), lowY - 20, `$\\frac{1}{n} - \\frac{1}{n+1}$`, 12);
+
+            [0, 0.5, 0.25, 0.2].forEach(val => {
+                const targetY = (val === 0 || val === 0.5) ? highY : lowY;
+                drawGuideLine(svg, mapX(val), axisY, targetY);
+            });
+
+            if(window.MathJax) MathJax.typesetPromise([container]);
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
