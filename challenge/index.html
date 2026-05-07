@@ -153,10 +153,29 @@
             }
         }, 1000);
 
-        // Show Random Challenge
+        // "Deck of Cards" Random Logic
         function showRandomChallenge() {
-            const randomIndex = Math.floor(Math.random() * challenges.length);
-            const selectedChallenge = challenges[randomIndex];
+            // Get the current 'bag' of available indices from local storage
+            let bag = JSON.parse(localStorage.getItem('challengeBag') || '[]');
+            
+            // If the bag is empty, fill it with all indices (0 to 5) and shuffle
+            if (bag.length === 0) {
+                bag = challenges.map((_, index) => index);
+                
+                // Fisher-Yates Shuffle algorithm
+                for (let i = bag.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [bag[i], bag[j]] = [bag[j], bag[i]];
+                }
+            }
+            
+            // Draw the last challenge index from the bag
+            const selectedIndex = bag.pop();
+            
+            // Save the remaining bag back to local storage
+            localStorage.setItem('challengeBag', JSON.stringify(bag));
+            
+            const selectedChallenge = challenges[selectedIndex];
             
             document.getElementById('random-title').innerText = selectedChallenge.title;
             document.getElementById('random-desc').innerText = selectedChallenge.desc;
@@ -168,7 +187,6 @@
         const allChallengesContainer = document.getElementById('all-challenges-container');
         const allChallengesList = document.getElementById('all-challenges-list');
 
-        // Populate the all challenges list
         challenges.forEach(challenge => {
             const div = document.createElement('div');
             div.className = 'single-challenge-list';
@@ -176,12 +194,10 @@
             allChallengesList.appendChild(div);
         });
 
-        // Toggle visibility
         showAllBtn.addEventListener('click', () => {
             if (allChallengesContainer.style.display === 'none' || allChallengesContainer.style.display === '') {
                 allChallengesContainer.style.display = 'block';
                 showAllBtn.innerText = 'Απόκρυψη όλων';
-                // If clicked during countdown, hide countdown and stop it
                 if (timeLeft > 0) {
                     clearInterval(timer);
                     countdownEl.style.display = 'none';
