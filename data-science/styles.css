@@ -1,4 +1,4 @@
-/* BLOG LAYOUT */
+/* BLOG LAYOUT*/
 
 body {
   margin: 0;
@@ -22,12 +22,13 @@ body {
 .hero h1 {
   font-size: 3.2em;
   letter-spacing: -1px;
+  margin: 0;
 }
 
 .blog-container {
   max-width: 800px;
   margin: auto;
-  padding: 40px 20px;
+  padding: 0 20px 80px; /* Constrains the width perfectly */
 }
 
 .card {
@@ -37,31 +38,70 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
-.card:hover {
-  transform: translateY(-6px) scale(1.01);
-}
-
-.post-preview {
-  margin-bottom: 50px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #334155;
-}
-
-.post-preview h2 {
-  margin-bottom: 5px;
-}
-
-.post-preview a {
-  text-decoration: none;
-  color: #e2e8f0;
-}
-
-.post-preview a:hover {
-  color: #38bdf8;
-}
-
 .post-meta {
-  font-size: 0.9em;
+  font-size: 1.1em;
   color: #94a3b8;
-  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+/* --- NEW ADDITIONS FOR THE POST CONTENT --- */
+
+.post-content {
+  padding: 40px 50px;
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+.post-content h2 {
+  color: #38bdf8;
+  margin-top: 2em;
+  margin-bottom: 0.8em;
+  font-size: 1.6rem;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  padding-bottom: 10px;
+}
+
+.post-content p {
+  margin-bottom: 1.5em;
+  color: #cbd5e1;
+}
+
+.post-content a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.post-content a:hover {
+  text-decoration: underline;
+  color: #7dd3fc;
+}
+
+/* --- FIXING THE IMAGES --- */
+
+.post-content img {
+  display: block;
+  max-width: 85%; /* Stops the image from filling the whole screen */
+  margin: 40px auto; /* Centers the image */
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  
+  /* THE DARK MODE MAGIC TRICK */
+  /* This turns white backgrounds dark gray, while keeping syntax colors roughly intact */
+  filter: invert(0.92) hue-rotate(180deg) brightness(1.1); 
+}
+
+/* --- FIXING CODE BLOCKS --- */
+
+pre {
+  background: #020617; /* Very dark background for terminal feel */
+  color: #7dd3fc;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(56,189,248,0.2);
+  overflow-x: auto;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.95em;
+  margin: 30px 0;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
 }
