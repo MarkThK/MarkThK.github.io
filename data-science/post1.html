@@ -37,7 +37,7 @@
     <h2>1. Library Imports</h2>
     <p>We first import some standard libraries:</p>
     
-    <img src="img/img1.png" alt="Importing standard libraries">
+    <img src="img/post1/img1.png" alt="Importing standard libraries">
 
     <p>
       We first import pytorch, the basic library for building the neural network. 
@@ -55,7 +55,7 @@
     <h2>2. Fetching the Data</h2>
     <p>We then download our data with the opendatasets library:</p>
 
-    <img src="img/img2.png" alt="Downloading data">
+    <img src="img/post1/img2.png" alt="Downloading data">
 
     <p>
       It's automatically saved to a subfolder called tomato. 
@@ -79,7 +79,7 @@ tomato/
       We begin by checking the dimensions of our images, with this function:
     </p>
 
-    <img src="img/img3.png" alt="Checking image dimensions">
+    <img src="img/post1/img3.png" alt="Checking image dimensions">
 
     <p>
       More than 900 different dimensions with all kinds of aspect ratios exist! 
@@ -87,7 +87,7 @@ tomato/
       Since no built-in solutions exist for our case, we create our own function to scale the picture and pad it with black pixels, so that the final dimension is 512x512.
     </p>
 
-    <img src="img/img4.png" alt="Scaling and padding function">
+    <img src="img/post1/img4.png" alt="Scaling and padding function">
 
     <p>
       For training a neural network, such relatively high resolution means big first layers, which are costly to train. 
@@ -97,7 +97,7 @@ tomato/
       More precisely, our data loader will look like this:
     </p>
 
-    <img src="img/img5.png" alt="Data loader structure">
+    <img src="img/post1/img5.png" alt="Data loader structure">
 
     <p>
       <strong>ImageFolder</strong> is the precise function that reads the images using PIL.Image. 
@@ -110,11 +110,11 @@ tomato/
       To normalise, we compute the mean and standard deviation:
     </p>
 
-    <img src="img/img6.png" alt="Computing mean and standard deviation">
+    <img src="img/post1/img6.png" alt="Computing mean and standard deviation">
 
     <p>...and then we define our transformation, using pytorch (to ensure compatibility with the data loader):</p>
 
-    <img src="img/img7.png" alt="Defining transformations">
+    <img src="img/post1/img7.png" alt="Defining transformations">
 
     <h2>4. Building the CNN</h2>
     <p>
@@ -125,7 +125,7 @@ tomato/
       Since we are trying to spot particular patterns that may even be mutually exclusive, we choose max pooling as the pooling function.
     </p>
 
-    <img src="img/img8.png" alt="Max pooling implementation">
+    <img src="img/post1/img8.png" alt="Max pooling implementation">
 
     <p>
       Then we continue with convolutions, pooling and some fully connected layers to analyse the results from the convolutions. 
@@ -133,7 +133,7 @@ tomato/
       Now, we move on to the training loop!
     </p>
 
-    <img src="img/img9.png" alt="Training loop">
+    <img src="img/post1/img9.png" alt="Training loop">
 
     <p>
       As criterion, we use cross entropy. 
