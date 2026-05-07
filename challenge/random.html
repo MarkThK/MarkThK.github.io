@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tυχαία Πρόκληση</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #countdown-container {
+            font-size: 8rem;
+            font-weight: bold;
+            color: #ff4757;
+        }
+
+        #challenge-container {
+            display: none;
+            max-width: 600px;
+            background: #1e272e;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .challenge-title {
+            color: #ffa502;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            margin-top: 0;
+        }
+
+        .challenge-desc {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: #d2dae2;
+        }
+
+        /* Discrete button styling */
+        #show-all-btn {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            opacity: 0.15;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: opacity 0.3s;
+        }
+
+        #show-all-btn:hover {
+            opacity: 0.8;
+        }
+
+        #all-challenges-container {
+            display: none;
+            margin-top: 40px;
+            max-width: 800px;
+            text-align: left;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .single-challenge-list {
+            background: #2f3542;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .single-challenge-list h3 {
+            margin-top: 0;
+            color: #ffa502;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="countdown-container">10</div>
+
+    <div id="challenge-container">
+        <h1 class="challenge-title" id="random-title"></h1>
+        <p class="challenge-desc" id="random-desc"></p>
+    </div>
+
+    <div id="all-challenges-container">
+        <h2>Όλες οι Προκλήσεις:</h2>
+        <div id="all-challenges-list"></div>
+    </div>
+
+    <button id="show-all-btn">Εμφάνιση όλων</button>
+
+    <script>
+        const challenges = [
+            {
+                title: "Ψηλότερο κτίριο!",
+                desc: "Εξερεύνησε το οικοδομικό τετράγωνο που βρίσκεται δίπλα σου. Βρες το πιο ψηλό κτίριο του τετραγώνου και βγάλε μια φωτογραφία."
+            },
+            {
+                title: "Σουβενίρ!",
+                desc: "Βρες ένα αντικείμενο από αυτήν την περιοχή (μια πέτρα, ένα κλαδάκι, κάποιο προϊόν) και κράτα το μαζί σου μέχρι το τέλος του παιχνιδιού. Πρέπει να παραμείνεις στο σημείο που βρήκες το σουβενίρ τουλάχιστον για 4 λεπτά."
+            },
+            {
+                title: "Βίντεο!",
+                desc: "Δες το όνομα του δρόμου στον οποίο βρίσκεσαι. Ψάξε και απομνημόνευσε μερικά facts σχετικά με τον άνθρωπο ή το μέρος που έδωσε στον δρόμο το όνομά του. Κατάγραψε ένα βίντεο από αυτόν τον δρόμο, στο οποίο λες τα facts που έμαθες. Το βίντεο πρέπει να διαρκεί τουλάχιστον ένα λεπτό."
+            },
+            {
+                title: "Εξερεύνηση!",
+                desc: "Εξερεύνησε την περιοχή σε ακτίνα 50 βημάτων (προς όλες τις κατευθύνσεις) και φωτογράφισε το πιο παράξενο αντικείμενο που υπάρχει στην περιοχή."
+            },
+            {
+                title: "Google Car Stalking!",
+                desc: "Πήγαινε στο streetview και δες όλες τις φωτογραφίες από τον δρόμο στον οποίο βρίσκεσαι, που υπάρχουν για το συγκεκριμένο οικοδομικό τετράγωνο. Στη συνέχεια, εντόπισε τα ακριβή σημεία στα οποία βρισκόταν το αυτοκίνητο όταν έβγαλε αυτές τις φωτογραφίες. Πήγαινε σε καθένα από αυτά τα σημεία και βγάλε screenshot με την τοποθεσία σου να φαίνεται πάνω στο google maps για καθένα από αυτά τα σημεία."
+            },
+            {
+                title: "Ουράνιο Τόξο",
+                desc: "Βρες ένα αντικείμενο για καθένα από τα χρώματα του ουράνιου τόξου. Το κάθε αντικείμενο θα πρέπει να έχει το αντίστοιχο χρώμα πάνω του και θα πρέπει να το βγάλεις φωτογραφία. Δεν γίνεται να χρησιμοποιήσεις το ίδιο αντικείμενο για να καλύψεις 2 διαφορετικά χρώματα."
+            }
+        ];
+
+        // Countdown Logic
+        let timeLeft = 10;
+        const countdownEl = document.getElementById('countdown-container');
+        const challengeEl = document.getElementById('challenge-container');
+        
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                countdownEl.innerText = timeLeft;
+            } else {
+                clearInterval(timer);
+                countdownEl.style.display = 'none';
+                showRandomChallenge();
+            }
+        }, 1000);
+
+        // Show Random Challenge
+        function showRandomChallenge() {
+            const randomIndex = Math.floor(Math.random() * challenges.length);
+            const selectedChallenge = challenges[randomIndex];
+            
+            document.getElementById('random-title').innerText = selectedChallenge.title;
+            document.getElementById('random-desc').innerText = selectedChallenge.desc;
+            challengeEl.style.display = 'block';
+        }
+
+        // Show All Challenges Logic
+        const showAllBtn = document.getElementById('show-all-btn');
+        const allChallengesContainer = document.getElementById('all-challenges-container');
+        const allChallengesList = document.getElementById('all-challenges-list');
+
+        // Populate the all challenges list
+        challenges.forEach(challenge => {
+            const div = document.createElement('div');
+            div.className = 'single-challenge-list';
+            div.innerHTML = `<h3>${challenge.title}</h3><p>${challenge.desc}</p>`;
+            allChallengesList.appendChild(div);
+        });
+
+        // Toggle visibility
+        showAllBtn.addEventListener('click', () => {
+            if (allChallengesContainer.style.display === 'none' || allChallengesContainer.style.display === '') {
+                allChallengesContainer.style.display = 'block';
+                showAllBtn.innerText = 'Απόκρυψη όλων';
+                // If clicked during countdown, hide countdown and stop it
+                if (timeLeft > 0) {
+                    clearInterval(timer);
+                    countdownEl.style.display = 'none';
+                }
+            } else {
+                allChallengesContainer.style.display = 'none';
+                showAllBtn.innerText = 'Εμφάνιση όλων';
+            }
+        });
+    </script>
+</body>
+</html>
