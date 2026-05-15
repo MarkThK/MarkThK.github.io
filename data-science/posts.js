@@ -4,11 +4,11 @@ const posts = [
     date: "May 2026",
     description: "My first project in computer vision. (Part 1)",
     link: "post1.html"
-  }//,
-  //{
-  //  title: "📊 Ανάλυση δεδομένων: πρώτες σκέψεις",
-  //  date: "Απρίλιος 2026",
-  //  description: "Πώς προσεγγίζω ένα νέο dataset από το μηδέν.",
-  //  link: "post2.html"
-  //}
+  },
+  {
+    title: "Improving the CNN for Tomato Plant Disease Detection",
+    date: "May 2026",
+    description: "My first Project in Computer Vision. (part 2)",
+    link: "post2.html"
+  }
 ];
