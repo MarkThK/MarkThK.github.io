@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preventing Overfitting in CNNs</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f9f9f9;
+        }
+        article {
+            background-color: #fff;
+            padding: 2rem 3rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        p {
+            margin-bottom: 1.2rem;
+            text-align: left;
+        }
+        ul {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1.5rem auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <article>
+        <h1>Improving CNN Architecture & Preventing Overfitting</h1>
+        
+        <p>In Part 1, we created a convolutional neural network for the detection of tomato plant diseases. It overfitted the training data, yielding an accuracy of 85% on training and 75% on testing. Here, we leverage various mechanisms to prevent overfitting and improve the overall architecture of the model. The first and most important step to countering overfitting is data augmentation. The idea is to make the data loader apply stochastic transformations, so that the model does not see the exact same images again and again, in the training epochs.</p>
+
+        <p>Some additional transformations that we may add, are the following:</p>
+        <ul>
+            <li><strong>RandomHorizontalFlip:</strong> May or may not flip the image by its horizontal axis (50% probability is the default).</li>
+            <li><strong>Color Jitter:</strong> It randomly changes the brightness, contrast, saturation and hue of an image. The arguments specify the maximum change that can be applied.</li>
+            <li><strong>Albumentations' CoarseDropout:</strong> We can use it to "cut out" tiny black rectangles in many places of the image. The rectangles are tiny in order for the signs of the disease to remain partially visible. Its implementation is trickier because Albumentations expects integer tensors, while we are working with PIL Images.</li>
+        </ul>
+
+        <p>We thus run:</p>
+        <img src="img 1.png" alt="pip install albumentations snippet">
+        <p>and</p>
+        <img src="img 2.png" alt="AlbumentationsTransform class definition snippet">
+        <img src="img 3.png" alt="transform_train block snippet">
+        <p>with our pre-existing transformations following.</p>
+
+        <p>With respect to the architecture of the model, we can add dropout and batch normalisation. Dropout randomly deactivates some of the neurons during training. Thus, the model learns multiple representations of the same characteristics and predicts the classes in more robust ways. Batch Normalisation, on the other hand, normalises the distribution of each batch. This improves gradient propagation and learning, while also introducing some noise that helps counter overfitting.</p>
+
+        <p>Apart from these new additions, we can also pool less aggressively in the beginning (to preserve more spatial characteristics) and add more dimensions, as the layers have progressively smaller inputs.</p>
+
+        <p>Finally, to transition from the CNN to the FNN part of the model, we observe that we only care about the final "verdict" of each dimension for the whole image; each dimension expresses the prevalence of a certain pattern and the patterns that we are looking for are not location-specific (i.e., we do not care if the disease signs appear in the central or the upper left part of the image). For this reason, performing a final pooling that will give us a final value on each dimension for the whole image (by collapsing the current 16x16 grid down to a 1x1 single value), allows for a better use of our resources. This pooling can be either a max-pooling or an average pooling.</p>
+
+        <p>The max pooling option is more natural for our use case, as we want to see if disease patterns exist anywhere in the leaf (even if there are very few, localised signs). However, it can lead to false positives, too, as something that may look to the model as a tiny, localised sign of disease can lead to a final verdict about the whole image. Average pooling, on the other hand, can express the amount of illness patterns that is present in the picture. Therefore, it can offset the excessive sensitivity to localised details of the max pooling. This is why we choose to use both of them!</p>
+
+        <p>After all of these adjustments, the neural network takes this form:</p>
+        <img src="img 4.png" alt="Net class architecture definition snippet">
+
+        <p>Since we are adjusting the NN to improve our testing accuracy, there is a real danger of our improvements overfitting the test set!</p>
+
+        <p>This is why we create a validation data set to be used for testing the model and improving it. The test set will now be used only for a final evaluation of the model. We create the evaluation set out of the training data; to do the split, we must generate the indices of the data for each dataset:</p>
+        <img src="img 5.png" alt="Indices generation for validation set split snippet">
+        
+        <p>Then we create the datasets and the data loaders:</p>
+        <img src="img 6.png" alt="Subsets and data loaders snippet">
+
+        <p>After 5 epochs of training, the model yields an 85% accuracy on the validation data and an 86% accuracy on the test data. A great improvement compared to Part 1!</p>
+    </article>
+</body>
+</html>
