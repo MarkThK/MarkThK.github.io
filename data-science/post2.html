@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preventing Overfitting in CNNs</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <article>
@@ -26,7 +26,7 @@
         <img src="img/post2/img 3.png" alt="transform_train block snippet">
         <p>with our pre-existing transformations following.</p>
 
-        <p>With respect to the architecture of the model, we can add dropout and batch normalisation. Dropout randomly deactivates some of the neurons during training. Thus, the model learns multiple representations of the same characteristics and predicts the classes in more robust ways. Batch Normalisation, on the other hand, normalises the distribution of each batch. This improves gradient propagation and learning, while also introducing some noise that helps counter overfitting.</p>
+        <p>Regarding the architecture of the model, we can add dropout and batch normalisation. Dropout randomly deactivates some of the neurons during training. Thus, the model learns multiple representations of the same characteristics and predicts the classes in more robust ways. Batch Normalisation, on the other hand, normalises the distribution of each batch. This improves gradient propagation and learning, while also introducing some noise that helps counter overfitting.</p>
 
         <p>Apart from these new additions, we can also pool less aggressively in the beginning (to preserve more spatial characteristics) and add more dimensions, as the layers have progressively smaller inputs.</p>
 
