@@ -63,10 +63,10 @@
         </ul>
 
         <p>We thus run:</p>
-        <img src="img 1.png" alt="pip install albumentations snippet">
+        <img src="img/post2/img 1.png" alt="pip install albumentations snippet">
         <p>and</p>
-        <img src="img 2.png" alt="AlbumentationsTransform class definition snippet">
-        <img src="img 3.png" alt="transform_train block snippet">
+        <img src="img/post2/img 2.png" alt="AlbumentationsTransform class definition snippet">
+        <img src="img/post2/img 3.png" alt="transform_train block snippet">
         <p>with our pre-existing transformations following.</p>
 
         <p>With respect to the architecture of the model, we can add dropout and batch normalisation. Dropout randomly deactivates some of the neurons during training. Thus, the model learns multiple representations of the same characteristics and predicts the classes in more robust ways. Batch Normalisation, on the other hand, normalises the distribution of each batch. This improves gradient propagation and learning, while also introducing some noise that helps counter overfitting.</p>
@@ -78,15 +78,15 @@
         <p>The max pooling option is more natural for our use case, as we want to see if disease patterns exist anywhere in the leaf (even if there are very few, localised signs). However, it can lead to false positives, too, as something that may look to the model as a tiny, localised sign of disease can lead to a final verdict about the whole image. Average pooling, on the other hand, can express the amount of illness patterns that is present in the picture. Therefore, it can offset the excessive sensitivity to localised details of the max pooling. This is why we choose to use both of them!</p>
 
         <p>After all of these adjustments, the neural network takes this form:</p>
-        <img src="img 4.png" alt="Net class architecture definition snippet">
+        <img src="img/post2/img 4.png" alt="Net class architecture definition snippet">
 
         <p>Since we are adjusting the NN to improve our testing accuracy, there is a real danger of our improvements overfitting the test set!</p>
 
         <p>This is why we create a validation data set to be used for testing the model and improving it. The test set will now be used only for a final evaluation of the model. We create the evaluation set out of the training data; to do the split, we must generate the indices of the data for each dataset:</p>
-        <img src="img 5.png" alt="Indices generation for validation set split snippet">
+        <img src="img/post2/img 5.png" alt="Indices generation for validation set split snippet">
         
         <p>Then we create the datasets and the data loaders:</p>
-        <img src="img 6.png" alt="Subsets and data loaders snippet">
+        <img src="img/post2/img 6.png" alt="Subsets and data loaders snippet">
 
         <p>After 5 epochs of training, the model yields an 85% accuracy on the validation data and an 86% accuracy on the test data. A great improvement compared to Part 1!</p>
     </article>
