@@ -19,7 +19,7 @@
             <h2>The Power of Data Augmentation</h2>
             <p>In Part 1, we created a convolutional neural network for the detection of tomato plant diseases. It overfitted the training data, yielding an accuracy of 85% on training and 75% on testing. Here, we leverage various mechanisms to prevent overfitting and improve the overall architecture of the model.</p><p> The first and most important step to countering overfitting is data augmentation. The idea is to make the data loader apply stochastic transformations, so that the model does not see the exact same images again and again, in the training epochs.</p>
 
-            <p>Some additional transformations that we may add, are the following:</p>
+            <p>Some transformations that we may add, are the following:</p>
             <ul>
                 <li><strong>RandomHorizontalFlip:</strong> May or may not flip the image by its horizontal axis (50% probability is the default).</li>
                 <li><strong>Color Jitter:</strong> It randomly changes the brightness, contrast, saturation and hue of an image. The arguments specify the maximum change that can be applied.</li>
