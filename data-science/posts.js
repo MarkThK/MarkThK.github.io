@@ -13,7 +13,7 @@ const posts = [
   },
   {
     title: "Analyzing the Diversity of Greek Online News Articles",
-    date: "May 2026",
+    date: "June 2026",
     description: "News diversity over time; using data from the Internet in DS projects. (Part 1)",
     link: "post3.html"
   }
