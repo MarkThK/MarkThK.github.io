@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Introducing My New Project</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="hero">
+  <h1>Introducing My New Project [cite: 1]</h1>
+  <p class="post-meta">The goal of this project is to analyse changes in the content and sentiment of news reporting in Greece, in the last 10 years. [cite: 1]</p>
+</header>
+
+<div class="blog-container">
+  <main class="card post-content">
+
+    <h2>1. Motivation & Context</h2>
+    <p>
+      We adopt a comparative approach, thus highlighting the variety of reporting in the current online news landscape, compared to the past. [cite: 2] 
+      Artificial Intelligence allows us to analyse the content of websites in the internet, at a scale that was previously impossible. [cite: 3] 
+      Tasks that would previously require human intervention to interpret a website's contents, are now largely automated. [cite: 4] 
+      This automation enables us to analyse the contents of the internet at a previously unimaginable pace and scale! [cite: 5]
+    </p>
+    <p>
+      As a result, we are now able to quantify the variety of different viewpoints and events, that exists in a country's media. [cite: 6] 
+      This can be done by extracting data from the most visited online news outlets, as well as from the websites of major tv channels and newspapers (as they nowadays post their main news online, too). [cite: 7] 
+      Moreover, the wayback machine allows to compare with historic records and unveil trends in the representation of different ideologies in the news. [cite: 8]
+    </p>
+
+    <h2>2. Technical Challenges</h2>
+    <p>
+      From a technical perspective, there are two main challenges. The first one is extracting the data from different HTML layouts. [cite: 9] 
+      It can be very hard to reliably identify the headlines and extract the first paragraph of each article, across different websites, without proper tools. [cite: 10]
+    </p>
+    <p>
+      The second challenge is how to represent the variance of the reported news' content and sentiment. [cite: 11] 
+      There are a few datasets that classify sentences as "right", "center", or "left" leaning, or describe the emotions attached to a clause. The problem is that they focus on only one aspect of news reporting (e.g., ideology or emotion) and, even for this particular aspect, they tend to use only a few labels ("right", "centre", "left"), that cannot express more nuanced differences between the outlets' ideological lean. [cite: 12]
+    </p>
+
+    <h2>3. Ideology & Embeddings</h2>
+    <p>
+      There are two ways to represent the differences between the news websites more reliably, that we will try. Firstly, we can avoid datasets altogether and use an encoder, that maps similar sentences (with regard primarily to what they say, but also with regard to sentiment) to similar vectors in an embedding space. [cite: 12, 13] 
+      To extract the ideology from the embeddings, we will try to find a left-to-right ideological direction in the encoder's embedding space. This would allow us to quantify the lean of any sentence with a simple projection (in practice, however, we'll see that this approach does not work). [cite: 13]
+    </p>
+    <p>
+      Another way to extract the ideology is to train a short FNN that takes the embeddings and maps them to an ideological score. [cite: 14] 
+      The key to training these linear layers is to use the left - centre - right labels in a comparative way: to use pairs of labeled data and tell the model which one is more left-leaning and which one is more right-leaning. [cite: 15] 
+      This allows the model to arrange the ideologies in a spectrum, rather than in distinct classes. [cite: 16] 
+      Therefore, the two metrics that we'll use are a form of variance applied directly to the embeddings (that captures the overall differences) and a short FNN filter that extracts only the ideology. [cite: 17]
+    </p>
+
+    <h2>4. Data Collection Strategy</h2>
+    <p>
+      The training data will be scraped from the web archive and cleaned appropriately. [cite: 18] 
+      Only the headline and the first paragraph will be used from each article. [cite: 19]
+    </p>
+    <p>
+      Our data sources, chosen to represent the most popular (across the decade) online news outlets, as well as other important traditional outlets, are the following: [cite: 20]
+    </p>
+    <ul>
+      <li>protothema.gr [cite: 20]</li>
+      <li>newsit.gr [cite: 20]</li>
+      <li>in.gr [cite: 20]</li>
+      <li>newsbomb.gr [cite: 20]</li>
+      <li>kathimerini.gr [cite: 20]</li>
+      <li>tanea.gr [cite: 20]</li>
+      <li>skai.gr [cite: 20]</li>
+      <li>antenna.gr [cite: 20]</li>
+      <li>megatv.com [cite: 20]</li>
+      <li>star.gr [cite: 20]</li>
+      <li>ertnews.gr [cite: 20]</li>
+    </ul>
+    <p>
+      With regard to the data collection, we will try to sample articles of the same days, for all 11 sources. [cite: 20] 
+      Thus, for each day, we will process the first 10 articles shown in the front page of each source. [cite: 21] 
+      This method is expected to yield data that expresses well the comparative biases of the outlets, as it captures the different editorial choices for the events of the same day. [cite: 22] 
+      Finally, to establish a certain consistency across time, while keeping scraping minimal, we will sample 4 articles per month from our sources. [cite: 23]
+    </p>
+
+  </main>
+</div>
+
+</body>
+</html>
