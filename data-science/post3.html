@@ -17,7 +17,7 @@
 <div class="blog-container">
   <main class="card post-content">
 
-    <h2>1. Motivation & Context</h2>
+    <h2>Motivation & Context</h2>
     <p>
       We adopt a comparative approach, thus highlighting the variety of reporting in the current online news landscape, compared to the past.
       Artificial Intelligence allows us to analyse the content of websites in the internet, at a scale that was previously impossible.
@@ -30,7 +30,7 @@
       Moreover, the wayback machine allows to compare with historic records and unveil trends in the representation of different ideologies in the news.
     </p>
 
-    <h2>2. Technical Challenges</h2>
+    <h2>Technical Challenges</h2>
     <p>
       From a technical perspective, there are two main challenges. The first one is extracting the data from different HTML layouts.
       It can be very hard to reliably identify the headlines and extract the first paragraph of each article, across different websites, without proper tools.
@@ -40,7 +40,7 @@
       There are a few datasets that classify sentences as "right", "center", or "left" leaning, or describe the emotions attached to a clause. The problem is that they focus on only one aspect of news reporting (e.g., ideology or emotion) and, even for this particular aspect, they tend to use only a few labels ("right", "centre", "left"), that cannot express more nuanced differences between the outlets' ideological lean.
     </p>
 
-    <h2>3. Ideology & Embeddings</h2>
+    <h2>Ideology & Embeddings</h2>
     <p>
       There are two ways to represent the differences between the news websites more reliably, that we will try. Firstly, we can avoid datasets altogether and use an encoder, that maps similar sentences (with regard primarily to what they say, but also with regard to sentiment) to similar vectors in an embedding space.
       To extract the ideology from the embeddings, we will try to find a left-to-right ideological direction in the encoder's embedding space. This would allow us to quantify the lean of any sentence with a simple projection (in practice, however, we'll see that this approach does not work).
@@ -52,7 +52,7 @@
       Therefore, the two metrics that we'll use are a form of variance applied directly to the embeddings (that captures the overall differences) and a short FNN filter that extracts only the ideology.
     </p>
 
-    <h2>4. Data Collection Strategy</h2>
+    <h2>Data Collection Strategy</h2>
     <p>
       The training data will be scraped from the web archive and cleaned appropriately.
       Only the headline and the first paragraph will be used from each article.
