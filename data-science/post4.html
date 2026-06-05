@@ -30,25 +30,25 @@
 
             <h2>Code Implementation</h2>
             <p>We start with imports and some global parameters:</p>
-            <img src="img/post4/img1.png" alt="Imports and global parameters">
+            <img src="img/post4/img1.png" alt="Imports and global parameters", class="keep-dark">
 
             <p>We also create the RSS_FEEDS dictionary and some helper functions (not all of them are shown here):</p>
-            <img src="img/post4/img2.png" alt="RSS_FEEDS dictionary and helper functions">
+            <img src="img/post4/img2.png" alt="RSS_FEEDS dictionary and helper functions", class="keep-dark">
 
             <p>Then we move on to the function that collects the data from a certain source:</p>
-            <img src="img/post4/img3.png" alt="Function to parse feed">
+            <img src="img/post4/img3.png" alt="Function to parse feed", class="keep-dark">
 
             <p>Here, the helper function clean_html uses the BeautifulSoup library to extract human-readable sentences from the code:</p>
-            <img src="img/post4/img4.png" alt="HTML cleaning function">
+            <img src="img/post4/img4.png" alt="HTML cleaning function", class="keep-dark">
 
             <p>Finally, we are able to update the RSS_FEEDS dictionary so that it contains the actual feeds from each source:</p>
-            <img src="img/post4/img5.png" alt="Function to update RSS dictionary">
+            <img src="img/post4/img5.png" alt="Function to update RSS dictionary", class="keep-dark">
 
             <h2>Analyzing the Embeddings</h2>
             <p>Once the feeds were saved in the cache (i.e., in rss_cache.json), they were manually cleaned to ensure that the outlet's ideological lean was reflected in all of the entries. Purely factual sentences, for example, were removed. Then, the model was loaded and the average embedding for each outlet was computed.</p>
             
             <p>Our working hypothesis is that, if we take the mean of the three right-leaning ones and the mean of the three left-leaning ones, then the vectors' difference will reflect their different ideological focus. That is, the differences in their mean embeddings should be a result of their different ideology. Other potential differences in wording and content, that are not connected to their ideological lean, should be minimal and have a small effect on the overall mean embedding. If this was to be true, it would imply that each right-leaning outlet would be much closer in the embedding space to other right-leaning outlets, than to left-leaning ones. Therefore, we would expect that same-ideology outlets would form clusters.</p>
-            <img src="img/post4/img6.png" alt="Main execution block computing embeddings">
+            <img src="img/post4/img6.png" alt="Main execution block computing embeddings", class="keep-dark">
 
             <h2>The Embedding Space Geometry</h2>
             <p>In the implementation, the distance between the outlets' mean embeddings is expressed as the cosine of the two vectors. This is because the encoder is trained with this cosine similarity of two vectors as the loss function. Therefore, scaling a vector by a positive number, results in a difference (or loss) of zero in the model. Two sentences that are mapped to [1, 1, 1, ..., 1] and [3, 3, 3, ..., 3] are, in reality, identical.</p>
