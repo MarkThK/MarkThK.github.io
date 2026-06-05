@@ -90,6 +90,10 @@ body {
   /* This turns white backgrounds dark gray, while keeping syntax colors roughly intact */
   filter: invert(0.92) hue-rotate(180deg) brightness(1.1); 
 }
+  /* Override if background already dark */
+.post-content img.keep-dark {
+  filter: none;
+}
 
 /* --- FIXING CODE BLOCKS --- */
 
