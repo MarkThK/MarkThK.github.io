@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquiring the Wayback Machine API</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Custom container for scrollable code sections */
+        .scrollable-code {
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #1e1e1e; /* Dark background for code readability */
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+            line-height: 1.4;
+            border: 1px solid #444;
+        }
+        .scrollable-code pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>Inquiring the Wayback Machine API</h1>
+    <div class="post-meta">Navigating API quirks and optimal date selection for historical data</div> 
+</div>
+
+<div class="blog-container">
+    
+    <article class="card">
+        
+        <div class="post-content">
+            <h2>Introduction</h2>
+            <p>In the last post, we created the first scrapers which work for the current versions of our sources.[cite: 1] The next step now is to inquire the way back machines API about the available are snapshots for the websites that interest us.[cite: 1] We will see that the availability is overall good, but some sources have the potential to radically reduce the quality of our data.[cite: 1] Therefore, we will make the decision to discard them.[cite: 1] As regards the technical challenges, they arise mainly from the from some quirks of the Wayback machine API and from domain name changes of our sources.[cite: 1] For example, ert has changed its domain name three times in the last ten years (the time slot that interests us).[cite: 1]</p>
+
+            <h2>Retrieving the Data</h2>
+            <p>For the retrieval of the data, we use a function that enquires the API for snapshots of the given URL.[cite: 1] Since the Wayback Machine times out easily, it is important to handle such exceptions gracefully.[cite: 1] We choose to retry up to 3 times in case of time out.[cite: 1] Moreover, for the sources that change domain names, we make sure to inquire for all of their URLs.[cite: 1] Their available snapshots are stored in different fields, depending on the URL and will be cleaned later.[cite: 1] You can see the code below:[cite: 1]</p>
+
+            <div class="scrollable-code">
+<pre><code>def fetch_cdx_data(urls, start_year, end_year):
+    """
+    Queries the Wayback Machine CDX API for all uncollapsed timestamps for the target URLs.
+    Accounts for historical domain shifts (like ERT and Antenna) by querying legacy domains
+    and merging their results under the modern domain key.
+    """
+    print("Fetching all timestamps from Wayback Machine CDX API (this may take a moment)...")
+    
+    # Nested dictionary to group data: Date -> URL -> List of Timestamps
+    date_to_url_to_ts = defaultdict(lambda: defaultdict(list))
+    
+    start_y = int(start_year)
+    end_y = int(end_year)
+    
+    for url in urls:
+        # Systematically account for historical domain name shifts
+        query_urls = [url]
+        if url == "https://www.ertnews.gr":
+            # ERT transitioned through nerit.gr -> ert.gr -> ertnews.gr
+            query_urls.extend(["https://www.ert.gr", "https://www.nerit.gr"])
+        elif url == "https://www.antenna.gr/news":
+            # Antenna shifted its news portal to ant1news.gr
+            query_urls.append("https://www.ant1news.gr")
+            
+        # Determine time chunks: 2-year splits for heavy domains, full 12-year window for the rest
+        if url in ["https://www.skai.gr", "https://www.newsit.gr"]:
+            time_chunks = []
+            for y in range(start_y, end_y + 1, 2):
+                chunk_end = min(y + 1, end_y)
+                time_chunks.append((y, chunk_end))
+        else:
+            time_chunks = [(start_y, end_y)]
+            
+        for q_url in query_urls:
+            for chunk_start, chunk_end in time_chunks:
+                if chunk_start == chunk_end:
+                    print(f"Querying data for {q_url} (Year: {chunk_start})...")
+                else:
+                    print(f"Querying data for {q_url} (Years: {chunk_start}-{chunk_end})...")
+                
+                # API endpoint requesting raw JSON timestamps without collapsing
+                cdx_url = (
+                    f"http://web.archive.org/cdx/search/cdx"
+                    f"?url={q_url}&from={chunk_start}&to={chunk_end}"
+                    f"&output=json&fl=timestamp"
+                )
+                
+                # 3-attempt retry loop with strict exception handling
+                for attempt in range(3):
+                    try:
+                        response = requests.get(cdx_url, timeout=90)
+                        
+                        # Forces requests to throw an exception for HTTP errors like 503 or 504
+                        response.raise_for_status()
+                        
+                        if response.text.strip():
+                            data = response.json()
+                            
+                            # Skip the first row (headers) and process the timestamp strings
+                            for row in data[1:]:
+                                ts = row[0]
+                                if len(ts) >= 14:
+                                    # Convert 14-digit string 'YYYYMMDDhhmmss' to a datetime object
+                                    dt_obj = datetime(
+                                        int(ts[:4]), int(ts[4:6]), int(ts[6:8]),
+                                        int(ts[8:10]), int(ts[10:12]), int(ts[12:14])
+                                    )
+                                    d_date = dt_obj.date()
+                                    
+                                    # Ensure the snapshot falls strictly within our bounds
+                                    if START_DATE <= d_date <= END_DATE:
+                                        # Append to the logical 'url' (e.g., ertnews.gr) to merge historical aliases
+                                        date_to_url_to_ts[d_date][url].append(dt_obj)
+                                        
+                        # Break out of the retry loop if successful
+                        break
+                        
+                    except requests.exceptions.RequestException as e:
+                        print(f"  Attempt {attempt + 1} failed for {q_url} ({chunk_start}-{chunk_end}): {e}")
+                        if attempt < 2:
+                            time.sleep(5) # Wait before retrying
+                        else:
+                            print(f"  Max retries reached for {q_url} in period {chunk_start}-{chunk_end}. Moving on.")
+                    except ValueError:
+                        print(f"  JSON decode error for {q_url} ({chunk_start}-{chunk_end}). The API returned invalid data.")
+                        break # Break on parsing errors so it doesn't infinitely loop on bad responses
+                        
+                # Polite sleep between requests to avoid rate limits
+                time.sleep(10)
+            
+    # Sort the timestamp lists chronologically for the variance-reduction algorithm
+    for d in date_to_url_to_ts:
+        for url in date_to_url_to_ts[d]:
+            date_to_url_to_ts[d][url].sort()
+            
+    return date_to_url_to_ts</code></pre>
+            </div>
+
+            <p>As you can see, the data is stored in a dictionary of dictionaries: the outer dictionary has all the different days as keys, while the dictionaries inside hold the available snapshots per source.[cite: 1]</p>
+
+            <h2>Deciding which days to use</h2>
+            <p>Our goal is to have 4 (later reduced to 2) snapshots per month for each source.[cite: 1] To be able to compare the contents across sources, it's better to select days for which all 11 sources have available snapshots.[cite: 1] For the months that do not have 2 such snapshots, we revert to days with 10 of the sources available, etc.[cite: 1] We also prefer days which are in different weeks, when possible.[cite: 1] Finally, we demand that the dates be a minimum number of days apart (so that the news is not the exact same).[cite: 1] This number of days is defined to be 2 + (11 - #of sources available for this day).[cite: 1] Thus, we are willing to sacrifice time distance if it means having all of the sources available for this day.[cite: 1]</p>
+
+            <p>The function that selects the days is the following:[cite: 1]</p>
+
+            <div class="scrollable-code">
+<pre><code>def select_dates_for_month(year, month, days_source_count):
+    """
+    Selects up to 4 dates per month enforcing a dynamic spacing rule: 2 + (11 - k) days.
+    Uses ISO week diversity as a tie-breaker.
+    """
+    selected_dates = []
+    
+    # Iterate downwards starting from the maximum possible sources (11)
+    for k in range(11, 0, -1):
+        if len(selected_dates) >= 4:
+            break
+            
+        needed = 4 - len(selected_dates)
+        
+        # Find all days in this specific month that have exactly 'k' sources
+        candidates = [d for d, count in days_source_count.items() 
+                      if d.year == year and d.month == month and count == k]
+        
+        if not candidates:
+            continue
+            
+        # Calculate the required dynamic spacing based on source availability
+        min_gap = 2 + (11 - k)
+        valid_candidates = []
+        
+        # Filter candidates that clash with already selected dates
+        for c in candidates:
+            if all(abs((c - s).days) > min_gap for s in selected_dates):
+                valid_candidates.append(c)
+                
+        if not valid_candidates:
+            continue
+            
+        best_combination = None
+        max_unique_weeks = -1
+        max_subset_size = min(needed, len(valid_candidates))
+        
+        # Try finding the largest valid combination of candidates that don't clash with each other
+        for size in range(max_subset_size, 0, -1):
+            possible_combs = []
+            
+            for comb in itertools.combinations(valid_candidates, size):
+                is_valid = True
+                
+                # Check internal spacing between candidates in this combination
+                for i in range(len(comb)):
+                    for j in range(i + 1, len(comb)):
+                        if abs((comb[i] - comb[j]).days) <= min_gap:
+                            is_valid = False
+                            break
+                    if not is_valid:
+                        break
+                        
+                if is_valid:
+                    possible_combs.append(comb)
+            
+            # If we found valid combinations, apply the tie-breaker
+            if possible_combs:
+                for comb in possible_combs:
+                    combined_dates = selected_dates + list(comb)
+                    # Count unique ISO calendar weeks to maximize weekly diversity
+                    unique_weeks = len(set(d.isocalendar()[1] for d in combined_dates))
+                    
+                    if unique_weeks > max_unique_weeks:
+                        max_unique_weeks = unique_weeks
+                        best_combination = comb
+                break # Stop searching smaller sizes once a valid larger size is found
+                
+        if best_combination:
+            selected_dates.extend(best_combination)
+
+    # Return the selected dates strictly in chronological order
+    return sorted(selected_dates)</code></pre>
+            </div>
+
+            <p>After the day is selected, the exact snapshots still remain to be chosen.[cite: 1] The criterion we impose is that the time distance from the earliest to the latest of the snapshots be as small as possible.[cite: 1] However, comparing all the possible combinations one by one would be very computationally expensive.[cite: 1] Instead, we use an approach that gradually improves the chosen snapshots by replacing the earliest one and the latest ones with others in-between.[cite: 1] (Whenever this is possible to do).[cite: 1] The code follows:[cite: 1]</p>
+
+            <div class="scrollable-code">
+<pre><code>def get_closest_timestamps(url_to_timestamps):
+    """
+    Minimizes the time variance across a set of sources on a specific day.
+    Uses the "Smallest Range in K lists" algorithm via a Min-Heap.
+    """
+    urls = list(url_to_timestamps.keys())
+    k = len(urls)
+    
+    heap = []
+    current_max_ts = -float('inf')
+    current_selection_indices = [0] * k 
+    
+    # Initialize the heap with the first (earliest) timestamp of each URL
+    for i, url in enumerate(urls):
+        ts = url_to_timestamps[url][0].timestamp()
+        heapq.heappush(heap, (ts, i, 0))
+        current_max_ts = max(current_max_ts, ts)
+        
+    best_range = float('inf')
+    best_indices = list(current_selection_indices)
+    
+    # Continuously evaluate the range and advance the pointer for the lowest timestamp
+    while True:
+        min_ts, url_idx, list_idx = heapq.heappop(heap)
+        current_range = current_max_ts - min_ts
+        
+        # Keep track of the tightest cluster found
+        if current_range < best_range:
+            best_range = current_range
+            best_indices = list(current_selection_indices)
+            
+        next_idx = list_idx + 1
+        
+        # Stop if any single URL runs out of timestamps to check
+        if next_idx >= len(url_to_timestamps[urls[url_idx]]):
+            break
+            
+        current_selection_indices[url_idx] = next_idx
+        next_ts = url_to_timestamps[urls[url_idx]][next_idx].timestamp()
+        
+        # Push the new timestamp into the heap and update the rolling maximum
+        heapq.heappush(heap, (next_ts, url_idx, next_idx))
+        current_max_ts = max(current_max_ts, next_ts)
+        
+    # Map the best indices back to actual datetime objects
+    result = {}
+    for i, url in enumerate(urls):
+        best_idx = best_indices[i]
+        result[url] = url_to_timestamps[url][best_idx]
+        
+    return result</code></pre>
+            </div>
+   
+            <h2>Completing the Logic</h2>
+            <p>In the main(), we make sure to keep the correct snapshots for sources with multiple domain names, depending on the date.[cite: 1] For the selcted days that are not perfect (i.e., they do not contain all of the sources), we retrieve the closest available snapshot for the missing sources.[cite: 1] Thus, the data is completed and is ready to be saved.[cite: 1] We save it in 3 different formats: JSON, pandas dataframe saved in csv and pickle.[cite: 1] To conclude, we print some statistics to help us understand the availability of snapshots.[cite: 1]</p>
+
+            <div class="scrollable-code">
+<pre><code>def main():
+    # 1. Fetch massive dataset
+    date_to_url_to_ts = fetch_cdx_data(SITES, "2014", "2026")
+    
+    # 2. Build a reverse-lookup dictionary for fast fallback searching later
+    url_to_dates = defaultdict(list)
+    for d, url_dict in date_to_url_to_ts.items():
+        for u in url_dict.keys():
+            url_to_dates[u].append(d)
+            
+    for u in url_to_dates:
+        url_to_dates[u].sort()
+    
+    # Create a simplified daily count mapping for the selection algorithm
+    days_source_count = {d: len(urls) for d, urls in date_to_url_to_ts.items()}
+    
+    current_date = START_DATE
+    total_selected = 0
+    
+    # Variables for output statistics
+    stats_source_counts = defaultdict(int)
+    normal_fallback_gaps = []
+    total_normal_missing = 0
+    total_blackout_missing = 0
+    
+    # Data structures for file exportation
+    export_json = defaultdict(list)
+    export_records = []
+    
+    print("\nProcessing calendar and selecting optimal dates (prints suppressed for speed)...")
+    
+    # Iterate through the timeline month by month
+    while current_date <= END_DATE:
+        year = current_date.year
+        month = current_date.month
+        month_key = f"{year}-{month:02d}"
+        
+        selected_for_month = select_dates_for_month(year, month, days_source_count)
+        
+        if selected_for_month:
+            for d in selected_for_month:
+                urls_for_day = date_to_url_to_ts[d]
+                num_sources = len(urls_for_day)
+                primary_date_str = d.strftime('%Y-%m-%d')
+                
+                stats_source_counts[num_sources] += 1
+                
+                # Retrieve the tightest chronological cluster of snapshots for the primary day
+                clustered_snapshots = get_closest_timestamps(urls_for_day)
+                
+                day_json_data = {
+                    "primary_date": primary_date_str,
+                    "sources_available": num_sources,
+                    "snapshots": {}
+                }
+                
+                # --- PROCESS PRIMARY SNAPSHOTS ---
+                for url, dt in clustered_snapshots.items():
+                    ts_str = dt.strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    # Dynamically set display URLs so historical datasets accurately reflect the domain of that era
+                    display_url = url
+                    if url == "https://www.ertnews.gr":
+                        if dt.date() < date(2015, 6, 10): # NERIT era
+                            display_url = "https://www.nerit.gr"
+                        elif dt.date() < date(2021, 1, 1): # ERT era
+                            display_url = "https://www.ert.gr"
+                    elif url == "https://www.antenna.gr/news" and dt.date() >= date(2018, 1, 1):
+                        display_url = "https://www.ant1news.gr"
+                        
+                    day_json_data["snapshots"][display_url] = {
+                        "timestamp": ts_str, 
+                        "is_fallback": False, 
+                        "gap_days": 0
+                    }
+                    export_records.append({
+                        "YearMonth": month_key,
+                        "PrimaryDate": primary_date_str,
+                        "SourcesAvailable": num_sources,
+                        "SourceURL": display_url,
+                        "Timestamp": ts_str,
+                        "IsFallback": False,
+                        "FallbackGapDays": 0
+                    })
+                
+                # --- PROCESS FALLBACK SNAPSHOTS ---
+                missing_sources = set(SITES) - set(urls_for_day.keys())
+                if missing_sources:
+                    for m_url in missing_sources:
+                        
+                        # Hardcoded blackout window for Mega Channel
+                        is_mega_blackout = (
+                            m_url == "https://www.megatv.com/mega-gegonota/" and 
+                            date(2016, 9, 1) <= d <= date(2020, 2, 16)
+                        )
+                        
+                        # Separate statistics for accurate math
+                        if is_mega_blackout:
+                            total_blackout_missing += 1
+                        else:
+                            total_normal_missing += 1
+                        
+                        available_dates = url_to_dates.get(m_url, [])
+                        
+                        # If data exists and it's not a blackout, find the nearest fallback date
+                        if available_dates and not is_mega_blackout:
+                            # Use absolute value to find the closest historical date
+                            closest_d = min(available_dates, key=lambda x: abs((x - d).days))
+                            dist = abs((closest_d - d).days)
+                            normal_fallback_gaps.append(dist) 
+                            
+                            # Grab the first available timestamp on that fallback day
+                            fallback_dt = date_to_url_to_ts[closest_d][m_url][0]
+                            ts_str = fallback_dt.strftime('%Y-%m-%d %H:%M:%S')
+                            
+                            # Apply the exact same dynamic historical domain mapping for the fallback timestamp
+                            display_url = m_url
+                            if m_url == "https://www.ertnews.gr":
+                                if fallback_dt.date() < date(2015, 6, 11): 
+                                    display_url = "https://www.nerit.gr"
+                                elif fallback_dt.date() < date(2021, 1, 1): 
+                                    display_url = "https://www.ert.gr"
+                            elif m_url == "https://www.antenna.gr/news" and fallback_dt.date() >= date(2018, 1, 1): 
+                                display_url = "https://www.ant1news.gr"
+                                
+                            day_json_data["snapshots"][display_url] = {
+                                "timestamp": ts_str, 
+                                "is_fallback": True, 
+                                "gap_days": dist
+                            }
+                            export_records.append({
+                                "YearMonth": month_key,
+                                "PrimaryDate": primary_date_str,
+                                "SourcesAvailable": num_sources,
+                                "SourceURL": display_url,
+                                "Timestamp": ts_str,
+                                "IsFallback": True,
+                                "FallbackGapDays": dist
+                            })
+                            
+                        # If in a blackout or completely missing, append None/NaN
+                        else:
+                            display_url = m_url
+                            if m_url == "https://www.ertnews.gr":
+                                if d < date(2015, 6, 11):
+                                    display_url = "https://www.nerit.gr"
+                                elif d < date(2021, 1, 1):
+                                    display_url = "https://www.ert.gr"
+                            elif m_url == "https://www.antenna.gr/news" and d >= date(2018, 1, 1): 
+                                display_url = "https://www.ant1news.gr"
+                                
+                            day_json_data["snapshots"][display_url] = {
+                                "timestamp": None, 
+                                "is_fallback": True, 
+                                "gap_days": None
+                            }
+                            export_records.append({
+                                "YearMonth": month_key,
+                                "PrimaryDate": primary_date_str,
+                                "SourcesAvailable": num_sources,
+                                "SourceURL": display_url,
+                                "Timestamp": None,
+                                "IsFallback": True,
+                                "FallbackGapDays": None
+                            })
+                            
+                export_json[month_key].append(day_json_data)
+                total_selected += 1
+                
+        # Advance to the next month using native datetime rules
+        if month == 12:
+            current_date = date(year + 1, 1, 1)
+        else:
+            current_date = date(year, month + 1, 1)
+
+    # --- SAVE TO FILES ---
+    print(f"\nSaving data to JSON, CSV, and Pickle files...")
+    
+    with open('wayback_snapshot_dates.json', 'w') as f:
+        json.dump(export_json, f, indent=4)
+        
+    df = pd.DataFrame(export_records)
+    df.to_csv('wayback_snapshot_dates.csv', index=False)
+    
+    with open('wayback_snapshot_dates.pkl', 'wb') as f:
+        pickle.dump(export_json, f)
+
+    # --- DISPLAY FINAL STATISTICS ---
+    print(f"\n======================================")
+    print(f"         SELECTION STATISTICS         ")
+    print(f"======================================")
+    print(f"Total primary dates selected: {total_selected}")
+    
+    print(f"\n--- Primary Date Source Availability ---")
+    for count in sorted(stats_source_counts.keys(), reverse=True):
+        print(f"  - Days with {count:2} sources: {stats_source_counts[count]} occurrences")
+        
+    print(f"\n--- Normal Missing Sources & Fallback Gaps ---")
+    print(f"  - Total normal missing instances handled: {total_normal_missing}")
+    
+    if normal_fallback_gaps:
+        avg_gap = sum(normal_fallback_gaps) / len(normal_fallback_gaps)
+        print(f"  - Minimum time-distance: {min(normal_fallback_gaps)} days")
+        print(f"  - Maximum time-distance: {max(normal_fallback_gaps)} days")
+        print(f"  - Average time-distance: {avg_gap:.2f} days")
+    elif total_normal_missing == 0:
+        print("  - All sources were available on every selected day (outside of Mega blackout)!")
+    else:
+        print("  - Normal missing sources had no alternative snapshot data available.")
+
+    print(f"\n--- Mega Channel Blackout Instances ---")
+    print(f"  - Total Mega blackout instances handled: {total_blackout_missing}")
+    print(f"  - Snapshot data assigned to None (NaN).")
+        
+    print(f"======================================")
+    print("Files successfully saved: .json, .csv, and .pkl")</code></pre>
+            </div>
+            
+            <h2>Results & Conclusion</h2>
+            <p>We can see that the average sources in the selected days drop as we go back in time:[cite: 1]</p>
+            
+            <img src="img/post6.img13.png" alt="Graph showing average sources in selected days dropping over time" class="keep-dark">
+            
+            <p>This is harmful, as it induces a greater variety of topics between the outlets simply because the articles are sampled from different days.[cite: 1] However, by focusing on availability per source, we can see that only a few sources cause the average to drop consistently:[cite: 1]</p>
+            
+            <img src="img/post6.img14.png" alt="Graph showing average snapshot availability consistently dropping per specific source" class="keep-dark">
+            
+            <p>In particular, Star and Antenna are the only sources with particularly inconsistent records on the wayback machine (Mega is already excluded here due to its outage between 2016 and 2020).[cite: 1] Since these sources reduce significantly the quality of the data (in a way that will affect our downstream tasks), we will be excluding them in the future.[cite: 1] The remaining 8 sources are still a high enough number to draw conclusions about the Greek news outlet landscape.[cite: 1]</p>
+
+        </div>
+    </article>
+</div>
+
+</body>
+</html>
