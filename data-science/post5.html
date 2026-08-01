@@ -26,22 +26,22 @@
             <p>Once we can navigate the HTML, the next problem is how to separate the article titles and links from other things such as ads[cite: 1]. Also, we need to figure out how to exclude articles of minor importance[cite: 1]. These minor articles usually arise because modern news websites heavily utilize sidebars, "trending" carousels, and sponsored widgets to keep users engaged, which clutters the main news feed we are actually interested in[cite: 1].</p>
             
             <p>The solution to this filtering problem is using regex (regular expressions)[cite: 1]. By compiling a regex pattern, we can search for partial string matches within class names, allowing us to target relevant article containers while bypassing standard ad blocks and minor story cards. Here is our attempt at a universal scraper:</p>
-            <img src="img7.png" alt="Attempt at a universal scraper" class="keep-dark">
+            <img src="post5/img7.png" alt="Attempt at a universal scraper" class="keep-dark">
 
             <h2>Fetching the HTML</h2>
             <p>Of course, to parse the HTML and send it to our scraper, we first need to acquire it reliably. While a simple requests script works for some static pages, many of these news outlets render their content dynamically using JavaScript. To get around this, we built an HTML fetcher using Selenium to mimic a real browser, wait for the JavaScript to execute, and then extract the fully rendered HTML. This code is shown below:</p>
             
-            <img src="img8.png" alt="HTML fetcher setup" class="keep-dark">
-            <img src="img9.png" alt="HTML fetcher execution" class="keep-dark">
+            <img src="post5/img8.png" alt="HTML fetcher setup" class="keep-dark">
+            <img src="post5/img9.png" alt="HTML fetcher execution" class="keep-dark">
 
             <h2>Moving to Per-Source Scrapers</h2>
             <p>Despite the regex approach, the universal scraper ultimately failed. The problem lies in the differences in where the article title is "hidden" in the HTML structure across different sites[cite: 1]. Some sites nest the title in an h2 tag within a specific div, while others use custom article tags or bury the link inside a series of span elements. It becomes impossible to use the same scraper everywhere[cite: 1].</p>
 
             <p>The solution was providing the fetched HTML to Gemini Pro and creating per-source scrapers[cite: 1]. This involved iterative improvements of each one of the scrapers, checking edge cases, and refining the logic, which proved to be very time consuming[cite: 1]. Here are two examples of the resulting custom scrapers:</p>
             
-            <img src="img10.png" alt="Custom scraper example 1" class="keep-dark">
-            <img src="img11.png" alt="Custom scraper example 2" class="keep-dark">
-            <img src="img12.png" alt="Custom scraper example 3" class="keep-dark">
+            <img src="post5/img10.png" alt="Custom scraper example 1" class="keep-dark">
+            <img src="post5/img11.png" alt="Custom scraper example 2" class="keep-dark">
+            <img src="post5/img12.png" alt="Custom scraper example 3" class="keep-dark">
 
             <h2>Main Ideas</h2>
             <p>Looking at the final custom scrapers, a common methodology emerges[cite: 1]. Instead of trying to pinpoint the exact target immediately, we use a two-phase approach. Phase 1 involves aggressive pruning with regex, where we actively search for and decompose unwanted sections (like sidebars, carousels, and widgets). Phase 2 focuses on extraction, where we look at the remaining, cleaned HTML and anchor directly to the heading tags to extract the headlines and URLs safely.</p>
