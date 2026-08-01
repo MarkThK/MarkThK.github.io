@@ -39,10 +39,10 @@
         
         <div class="post-content">
             <h2>Introduction</h2>
-            <p>In the last post, we created the first scrapers which work for the current versions of our sources.[cite: 1] The next step now is to inquire the way back machines API about the available are snapshots for the websites that interest us.[cite: 1] We will see that the availability is overall good, but some sources have the potential to radically reduce the quality of our data.[cite: 1] Therefore, we will make the decision to discard them.[cite: 1] As regards the technical challenges, they arise mainly from the from some quirks of the Wayback machine API and from domain name changes of our sources.[cite: 1] For example, ert has changed its domain name three times in the last ten years (the time slot that interests us).[cite: 1]</p>
+            <p>In the last post, we created the first scrapers which work for the current versions of our sources. The next step now is to inquire the way back machines API about the available are snapshots for the websites that interest us. We will see that the availability is overall good, but some sources have the potential to radically reduce the quality of our data. Therefore, we will make the decision to discard them. As regards the technical challenges, they arise mainly from the from some quirks of the Wayback machine API and from domain name changes of our sources. For example, ert has changed its domain name three times in the last ten years (the time slot that interests us).</p>
 
             <h2>Retrieving the Data</h2>
-            <p>For the retrieval of the data, we use a function that enquires the API for snapshots of the given URL.[cite: 1] Since the Wayback Machine times out easily, it is important to handle such exceptions gracefully.[cite: 1] We choose to retry up to 3 times in case of time out.[cite: 1] Moreover, for the sources that change domain names, we make sure to inquire for all of their URLs.[cite: 1] Their available snapshots are stored in different fields, depending on the URL and will be cleaned later.[cite: 1] You can see the code below:[cite: 1]</p>
+            <p>For the retrieval of the data, we use a function that enquires the API for snapshots of the given URL. Since the Wayback Machine times out easily, it is important to handle such exceptions gracefully. We choose to retry up to 3 times in case of time out. Moreover, for the sources that change domain names, we make sure to inquire for all of their URLs. Their available snapshots are stored in different fields, depending on the URL and will be cleaned later. You can see the code below:</p>
 
             <div class="scrollable-code">
 <pre><code>def fetch_cdx_data(urls, start_year, end_year):
@@ -143,12 +143,12 @@
     return date_to_url_to_ts</code></pre>
             </div>
 
-            <p>As you can see, the data is stored in a dictionary of dictionaries: the outer dictionary has all the different days as keys, while the dictionaries inside hold the available snapshots per source.[cite: 1]</p>
+            <p>As you can see, the data is stored in a dictionary of dictionaries: the outer dictionary has all the different days as keys, while the dictionaries inside hold the available snapshots per source.</p>
 
             <h2>Deciding which days to use</h2>
-            <p>Our goal is to have 4 (later reduced to 2) snapshots per month for each source.[cite: 1] To be able to compare the contents across sources, it's better to select days for which all 11 sources have available snapshots.[cite: 1] For the months that do not have 2 such snapshots, we revert to days with 10 of the sources available, etc.[cite: 1] We also prefer days which are in different weeks, when possible.[cite: 1] Finally, we demand that the dates be a minimum number of days apart (so that the news is not the exact same).[cite: 1] This number of days is defined to be 2 + (11 - #of sources available for this day).[cite: 1] Thus, we are willing to sacrifice time distance if it means having all of the sources available for this day.[cite: 1]</p>
+            <p>Our goal is to have 4 (later reduced to 2) snapshots per month for each source. To be able to compare the contents across sources, it's better to select days for which all 11 sources have available snapshots. For the months that do not have 2 such snapshots, we revert to days with 10 of the sources available, etc. We also prefer days which are in different weeks, when possible. Finally, we demand that the dates be a minimum number of days apart (so that the news is not the exact same). This number of days is defined to be 2 + (11 - #of sources available for this day). Thus, we are willing to sacrifice time distance if it means having all of the sources available for this day.</p>
 
-            <p>The function that selects the days is the following:[cite: 1]</p>
+            <p>The function that selects the days is the following:</p>
 
             <div class="scrollable-code">
 <pre><code>def select_dates_for_month(year, month, days_source_count):
@@ -226,7 +226,7 @@
     return sorted(selected_dates)</code></pre>
             </div>
 
-            <p>After the day is selected, the exact snapshots still remain to be chosen.[cite: 1] The criterion we impose is that the time distance from the earliest to the latest of the snapshots be as small as possible.[cite: 1] However, comparing all the possible combinations one by one would be very computationally expensive.[cite: 1] Instead, we use an approach that gradually improves the chosen snapshots by replacing the earliest one and the latest ones with others in-between.[cite: 1] (Whenever this is possible to do).[cite: 1] The code follows:[cite: 1]</p>
+            <p>After the day is selected, the exact snapshots still remain to be chosen. The criterion we impose is that the time distance from the earliest to the latest of the snapshots be as small as possible. However, comparing all the possible combinations one by one would be very computationally expensive. Instead, we use an approach that gradually improves the chosen snapshots by replacing the earliest one and the latest ones with others in-between. (Whenever this is possible to do). The code follows:</p>
 
             <div class="scrollable-code">
 <pre><code>def get_closest_timestamps(url_to_timestamps):
@@ -283,7 +283,7 @@
             </div>
    
             <h2>Completing the Logic</h2>
-            <p>In the main(), we make sure to keep the correct snapshots for sources with multiple domain names, depending on the date.[cite: 1] For the selcted days that are not perfect (i.e., they do not contain all of the sources), we retrieve the closest available snapshot for the missing sources.[cite: 1] Thus, the data is completed and is ready to be saved.[cite: 1] We save it in 3 different formats: JSON, pandas dataframe saved in csv and pickle.[cite: 1] To conclude, we print some statistics to help us understand the availability of snapshots.[cite: 1]</p>
+            <p>In the main(), we make sure to keep the correct snapshots for sources with multiple domain names, depending on the date. For the selcted days that are not perfect (i.e., they do not contain all of the sources), we retrieve the closest available snapshot for the missing sources. Thus, the data is completed and is ready to be saved. We save it in 3 different formats: JSON, pandas dataframe saved in csv and pickle. To conclude, we print some statistics to help us understand the availability of snapshots.</p>
 
             <div class="scrollable-code">
 <pre><code>def main():
@@ -505,15 +505,15 @@
             </div>
             
             <h2>Results & Conclusion</h2>
-            <p>We can see that the average sources in the selected days drop as we go back in time:[cite: 1]</p>
+            <p>We can see that the average sources in the selected days drop as we go back in time:</p>
             
             <img src="img/post6.img13.png" alt="Graph showing average sources in selected days dropping over time" class="keep-dark">
             
-            <p>This is harmful, as it induces a greater variety of topics between the outlets simply because the articles are sampled from different days.[cite: 1] However, by focusing on availability per source, we can see that only a few sources cause the average to drop consistently:[cite: 1]</p>
+            <p>This is harmful, as it induces a greater variety of topics between the outlets simply because the articles are sampled from different days. However, by focusing on availability per source, we can see that only a few sources cause the average to drop consistently:</p>
             
             <img src="img/post6.img14.png" alt="Graph showing average snapshot availability consistently dropping per specific source" class="keep-dark">
             
-            <p>In particular, Star and Antenna are the only sources with particularly inconsistent records on the wayback machine (Mega is already excluded here due to its outage between 2016 and 2020).[cite: 1] Since these sources reduce significantly the quality of the data (in a way that will affect our downstream tasks), we will be excluding them in the future.[cite: 1] The remaining 8 sources are still a high enough number to draw conclusions about the Greek news outlet landscape.[cite: 1]</p>
+            <p>In particular, Star and Antenna are the only sources with particularly inconsistent records on the wayback machine (Mega is already excluded here due to its outage between 2016 and 2020). Since these sources reduce significantly the quality of the data (in a way that will affect our downstream tasks), we will be excluding them in the future. The remaining 8 sources are still a high enough number to draw conclusions about the Greek news outlet landscape.</p>
 
         </div>
     </article>
