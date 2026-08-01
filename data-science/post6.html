@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Prism.js Dark Theme for Code Highlighting -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-<!-- Prism.js Core & Python Scripts (Put this before </body> or in <head>) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <!-- Prism.js Core & Python Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
     <title>Inquiring the Wayback Machine API</title>
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -73,7 +73,7 @@
             <p>For the retrieval of the data, we use a function that enquires the API for snapshots of the given URL. Since the Wayback Machine times out easily, it is important to handle such exceptions gracefully. We choose to retry up to 3 times in case of time out. Moreover, for the sources that change domain names, we make sure to inquire for all of their URLs. Their available snapshots are stored in different fields, depending on the URL and will be cleaned later. You can see the code below:</p>
 
             <div class="scrollable-code">
-<pre><code>def fetch_cdx_data(urls, start_year, end_year):
+<pre class="language-python"><code class="language-python">def fetch_cdx_data(urls, start_year, end_year):
     """
     Queries the Wayback Machine CDX API for all uncollapsed timestamps for the target URLs.
     Accounts for historical domain shifts (like ERT and Antenna) by querying legacy domains
@@ -179,7 +179,7 @@
             <p>The function that selects the days is the following:</p>
 
             <div class="scrollable-code">
-<pre><code>def select_dates_for_month(year, month, days_source_count):
+<pre class="language-python"><code class="language-python">def select_dates_for_month(year, month, days_source_count):
     """
     Selects up to 4 dates per month enforcing a dynamic spacing rule: 2 + (11 - k) days.
     Uses ISO week diversity as a tie-breaker.
@@ -257,7 +257,7 @@
             <p>After the day is selected, the exact snapshots still remain to be chosen. The criterion we impose is that the time distance from the earliest to the latest of the snapshots be as small as possible. However, comparing all the possible combinations one by one would be very computationally expensive. Instead, we use an approach that gradually improves the chosen snapshots by replacing the earliest one and the latest ones with others in-between. (Whenever this is possible to do). The code follows:</p>
 
             <div class="scrollable-code">
-<pre><code>def get_closest_timestamps(url_to_timestamps):
+<pre class="language-python"><code class="language-python">def get_closest_timestamps(url_to_timestamps):
     """
     Minimizes the time variance across a set of sources on a specific day.
     Uses the "Smallest Range in K lists" algorithm via a Min-Heap.
@@ -314,7 +314,7 @@
             <p>In the main(), we make sure to keep the correct snapshots for sources with multiple domain names, depending on the date. For the selcted days that are not perfect (i.e., they do not contain all of the sources), we retrieve the closest available snapshot for the missing sources. Thus, the data is completed and is ready to be saved. We save it in 3 different formats: JSON, pandas dataframe saved in csv and pickle. To conclude, we print some statistics to help us understand the availability of snapshots.</p>
 
             <div class="scrollable-code">
-<pre><code>def main():
+<pre class="language-python"><code class="language-python">def main():
     # 1. Fetch massive dataset
     date_to_url_to_ts = fetch_cdx_data(SITES, "2014", "2026")
     
@@ -535,11 +535,11 @@
             <h2>Results & Conclusion</h2>
             <p>We can see that the average sources in the selected days drop as we go back in time:</p>
             
-            <img src="img/post6.img13.png" alt="Graph showing average sources in selected days dropping over time" class="keep-dark">
+            <img src="img/post6/img13.png" alt="Graph showing average sources in selected days dropping over time" class="keep-dark">
             
             <p>This is harmful, as it induces a greater variety of topics between the outlets simply because the articles are sampled from different days. However, by focusing on availability per source, we can see that only a few sources cause the average to drop consistently:</p>
             
-            <img src="img/post6.img14.png" alt="Graph showing average snapshot availability consistently dropping per specific source" class="keep-dark">
+            <img src="img/post6/img14.png" alt="Graph showing average snapshot availability consistently dropping per specific source" class="keep-dark">
             
             <p>In particular, Star and Antenna are the only sources with particularly inconsistent records on the wayback machine (Mega is already excluded here due to its outage between 2016 and 2020). Since these sources reduce significantly the quality of the data (in a way that will affect our downstream tasks), we will be excluding them in the future. The remaining 8 sources are still a high enough number to draw conclusions about the Greek news outlet landscape.</p>
 
