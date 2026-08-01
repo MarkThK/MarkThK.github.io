@@ -13,20 +13,20 @@
     <style>
     /* Modern Editor Container Box */
     .scrollable-code {
-        max-height: 400px;
-        overflow-y: auto;          /* Vertical scroll stays on the main box */
-        overflow-x: hidden;        /* Prevents double scrollbars */
         margin: 20px 0;
         border-radius: 8px;
         border: 1px solid #3c3c3c;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        overflow: hidden; /* Keeps the rounded border corners clean */
     }
 
     /* Target Prism's code box layout safely */
     .scrollable-code pre[class*="language-"] {
         margin: 0 !important;
         padding: 15px !important;
-        overflow-x: auto !important; /* Horizontal scroll stays sticky right under text */
+        max-height: 400px !important;  /* Moved here: Limits the height of the actual code block */
+        overflow-y: auto !important;   /* Moved here: Keeps vertical scrollbar always visible on the right */
+        overflow-x: auto !important;   /* Keeps horizontal scrollbar always visible at the bottom */
         background: #1e1e1e !important; /* True dark background color */
         font-family: 'Fira Code', 'Consolas', monospace !important;
         font-size: 0.9em !important;
@@ -42,6 +42,10 @@
     .scrollable-code::-webkit-scrollbar-track,
     .scrollable-code pre::-webkit-scrollbar-track {
         background: #1e1e1e;
+    }
+    .scrollable-code::-webkit-scrollbar-corner,
+    .scrollable-code pre::-webkit-scrollbar-corner {
+        background: #1e1e1e; /* Hides the white square where the two scrollbars meet */
     }
     .scrollable-code::-webkit-scrollbar-thumb,
     .scrollable-code pre::-webkit-scrollbar-thumb {
@@ -535,11 +539,11 @@
             <h2>Results & Conclusion</h2>
             <p>We can see that the average sources in the selected days drop as we go back in time:</p>
             
-            <img src="img/post6/img13.png" alt="Graph showing average sources in selected days dropping over time" style="width: 120%; max-width: 800px; display: block; margin: 20px auto;" class="keep-dark">
+            <img src="img/post6/img13.png" alt="Graph showing average sources in selected days dropping over time" style="width: 97%; max-width: 800px; display: block; margin: 20px auto;" class="keep-dark">
             
             <p>This is harmful, as it induces a greater variety of topics between the outlets simply because the articles are sampled from different days. However, by focusing on availability per source, we can see that only a few sources cause the average to drop consistently:</p>
             
-            <img src="img/post6/img14.png" alt="Graph showing average snapshot availability consistently dropping per specific source" style="width: 120%; max-width: 800px; display: block; margin: 20px auto;" class="keep-dark">
+            <img src="img/post6/img14.png" alt="Graph showing average snapshot availability consistently dropping per specific source" style="width: 97%; max-width: 800px; display: block; margin: 20px auto;" class="keep-dark">
             
             <p>In particular, Star and Antenna are the only sources with particularly inconsistent records on the wayback machine (Mega is already excluded here due to its outage between 2016 and 2020). Since these sources reduce significantly the quality of the data (in a way that will affect our downstream tasks), we will be excluding them in the future. The remaining 8 sources are still a high enough number to draw conclusions about the Greek news outlet landscape.</p>
 
