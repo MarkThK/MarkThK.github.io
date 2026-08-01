@@ -28,5 +28,11 @@ const posts = [
     date: "August 2026",
     description: "News diversity over time; using data from the Internet in DS projects. (Part 3)",
     link: "post5.html"
+  },
+  {
+    title: "Selecting which Snapshots to Use among the Ones Available",
+    date: "August 2026",
+    description: "News diversity over time; using data from the Internet in DS projects. (Part 3)",
+    link: "post6.html"
   }
 ];
