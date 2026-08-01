@@ -9,7 +9,8 @@
         /* Custom container for scrollable code sections */
         .scrollable-code {
             max-height: 400px;
-            overflow-y: auto;
+            overflow-y: auto;   /* Enables vertical scrolling */
+            overflow-x: auto;   /* Enables horizontal scrolling */
             background-color: #1e1e1e; /* Dark background for code readability */
             color: #d4d4d4;
             padding: 15px;
@@ -22,7 +23,7 @@
         }
         .scrollable-code pre {
             margin: 0;
-            white-space: pre-wrap;
+            white-space: pre;   /* Forces the code to stay on one line and trigger the horizontal scrollbar */
         }
     </style>
 </head>
