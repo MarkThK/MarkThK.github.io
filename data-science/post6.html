@@ -3,65 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Prism.js Dark Theme for Code Highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<!-- Prism.js Core & Python Scripts (Put this before </body> or in <head>) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
     <title>Inquiring the Wayback Machine API</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Modern Editor Container */
-        .scrollable-code {
-            max-height: 400px;
-            overflow-y: auto;          /* Vertical scroll stays on the main box */
-            overflow-x: hidden;        /* Prevents double scrollbars */
-            background-color: #1e1e1e; /* VS Code Style Dark Background */
-            border-radius: 8px;
-            margin: 20px 0;
-            border: 1px solid #3c3c3c;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
+    /* Modern Editor Container Box */
+    .scrollable-code {
+        max-height: 400px;
+        overflow-y: auto;          /* Vertical scroll stays on the main box */
+        overflow-x: hidden;        /* Prevents double scrollbars */
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid #3c3c3c;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
 
-        /* Code Block Wrapper */
-        .scrollable-code pre {
-            margin: 0;
-            padding: 15px;
-            overflow-x: auto;          /* Horizontal scrollbar is attached directly to the text line */
-            white-space: pre;          /* Keeps lines from breaking */
-            font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
-            font-size: 0.9em;
-            line-height: 1.5;
-            color: #d4d4d4;            /* Default text color */
-        }
+    /* Target Prism's code box layout safely */
+    .scrollable-code pre[class*="language-"] {
+        margin: 0 !important;
+        padding: 15px !important;
+        overflow-x: auto !important; /* Horizontal scroll stays sticky right under text */
+        background: #1e1e1e !important; /* True dark background color */
+        font-family: 'Fira Code', 'Consolas', monospace !important;
+        font-size: 0.9em !important;
+        line-height: 1.5 !important;
+    }
 
-        /* Optional Editor Syntax Coloring */
-        .scrollable-code code {
-            color: #9cdcfe;            /* Variables / Identifiers (Light Blue) */
-        }
-        
-        /* Python Syntax-like highlights using basic text colors */
-        .scrollable-code .keyword { color: #569cd6; font-weight: bold; } /* def, if, for (Blue) */
-        .scrollable-code .string  { color: #ce9178; }                    /* Strings (Orange/Brown) */
-        .scrollable-code .comment { color: #6a9955; font-style: italic; } /* Comments (Green) */
-        .scrollable-code .number  { color: #b5cea8; }                    /* Numbers (Light Green) */
-        .scrollable-code .builtin { color: #4ec9b0; }                    /* Functions like print() (Teal) */
-
-        /* Custom Modern Scrollbars */
-        .scrollable-code::-webkit-scrollbar,
-        .scrollable-code pre::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        .scrollable-code::-webkit-scrollbar-track,
-        .scrollable-code pre::-webkit-scrollbar-track {
-            background: #1e1e1e;
-        }
-        .scrollable-code::-webkit-scrollbar-thumb,
-        .scrollable-code pre::-webkit-scrollbar-thumb {
-            background: #424242;
-            border-radius: 5px;
-        }
-        .scrollable-code::-webkit-scrollbar-thumb:hover,
-        .scrollable-code pre::-webkit-scrollbar-thumb:hover {
-            background: #4f4f4f;
-        }
-    </style>
+    /* Custom Modern Scrollbars for both containers */
+    .scrollable-code::-webkit-scrollbar,
+    .scrollable-code pre::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    .scrollable-code::-webkit-scrollbar-track,
+    .scrollable-code pre::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+    .scrollable-code::-webkit-scrollbar-thumb,
+    .scrollable-code pre::-webkit-scrollbar-thumb {
+        background: #424242;
+        border-radius: 5px;
+    }
+    .scrollable-code::-webkit-scrollbar-thumb:hover,
+    .scrollable-code pre::-webkit-scrollbar-thumb:hover {
+        background: #555555;
+    }
+</style>
 </head>
 <body>
 
