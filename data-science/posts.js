@@ -18,9 +18,15 @@ const posts = [
     link: "post3.html"
   },
   {
-    title: "Trying to find a bias axis in the embedding space.",
+    title: "Trying to Find a Bias Axis in the Embedding Space.",
     date: "June 2026",
     description: "News diversity over time; using data from the Internet in DS projects. (Part 2)",
     link: "post4.html"
+  },
+  {
+    title: "Creating the Scrapers for the News Websites",
+    date: "August 2026",
+    description: "News diversity over time; using data from the Internet in DS projects. (Part 3)",
+    link: "post5.html"
   }
 ];
