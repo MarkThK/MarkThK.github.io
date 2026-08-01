@@ -30,7 +30,7 @@ const posts = [
     link: "post5.html"
   },
   {
-    title: "Selecting which Snapshots to Use among the Ones Available",
+    title: "Retrieving the List of Available Snapshots and Selcting which ones to Use",
     date: "August 2026",
     description: "News diversity over time; using data from the Internet in DS projects. (Part 3)",
     link: "post6.html"
