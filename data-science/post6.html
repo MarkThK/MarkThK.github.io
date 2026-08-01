@@ -6,24 +6,60 @@
     <title>Inquiring the Wayback Machine API</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Custom container for scrollable code sections */
+        /* Modern Editor Container */
         .scrollable-code {
             max-height: 400px;
-            overflow-y: auto;   /* Enables vertical scrolling */
-            overflow-x: auto;   /* Enables horizontal scrolling */
-            background-color: #1e1e1e; /* Dark background for code readability */
-            color: #d4d4d4;
-            padding: 15px;
+            overflow-y: auto;          /* Vertical scroll stays on the main box */
+            overflow-x: hidden;        /* Prevents double scrollbars */
+            background-color: #1e1e1e; /* VS Code Style Dark Background */
             border-radius: 8px;
             margin: 20px 0;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.95em;
-            line-height: 1.4;
-            border: 1px solid #444;
+            border: 1px solid #3c3c3c;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
+
+        /* Code Block Wrapper */
         .scrollable-code pre {
             margin: 0;
-            white-space: pre;   /* Forces the code to stay on one line and trigger the horizontal scrollbar */
+            padding: 15px;
+            overflow-x: auto;          /* Horizontal scrollbar is attached directly to the text line */
+            white-space: pre;          /* Keeps lines from breaking */
+            font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: #d4d4d4;            /* Default text color */
+        }
+
+        /* Optional Editor Syntax Coloring */
+        .scrollable-code code {
+            color: #9cdcfe;            /* Variables / Identifiers (Light Blue) */
+        }
+        
+        /* Python Syntax-like highlights using basic text colors */
+        .scrollable-code .keyword { color: #569cd6; font-weight: bold; } /* def, if, for (Blue) */
+        .scrollable-code .string  { color: #ce9178; }                    /* Strings (Orange/Brown) */
+        .scrollable-code .comment { color: #6a9955; font-style: italic; } /* Comments (Green) */
+        .scrollable-code .number  { color: #b5cea8; }                    /* Numbers (Light Green) */
+        .scrollable-code .builtin { color: #4ec9b0; }                    /* Functions like print() (Teal) */
+
+        /* Custom Modern Scrollbars */
+        .scrollable-code::-webkit-scrollbar,
+        .scrollable-code pre::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        .scrollable-code::-webkit-scrollbar-track,
+        .scrollable-code pre::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        .scrollable-code::-webkit-scrollbar-thumb,
+        .scrollable-code pre::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 5px;
+        }
+        .scrollable-code::-webkit-scrollbar-thumb:hover,
+        .scrollable-code pre::-webkit-scrollbar-thumb:hover {
+            background: #4f4f4f;
         }
     </style>
 </head>
