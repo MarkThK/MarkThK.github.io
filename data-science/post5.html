@@ -18,34 +18,44 @@
     <article class="card">
         
         <div class="post-content">
+            <h2>Introduction to the Task</h2>
+            <p>To continue the project, we will need to retrieve the article titles from the websites. To this end, we continue by building scrapers that work for the current layouts of the websites we are interested in. This proved to be quite a tedious task: On the one hand, the complexity of a website's structure made the search for the titles quite complicated. Various tools (from parse trees, to regular expressions and to LLMs). On the other hand the large differences in the structure of the different websites meant that a different scraper had to be created for every website. </p>
+            <p>This post showcases how these challenges were overcome and concludes with two examples of the scrapers produced.</p>
 
             <h2>The Initial Approach</h2>
-            <p>Initially we try to build a scraper that works universally. The first problem we encounter is how to actually find the articles. To do this, we need to fetch the HTML of the webpage and parse it. Parsing involves creating a parse tree that makes the document navigable, and for this task we use BeautifulSoup. This Python library transforms the raw, messy HTML into a structured tree of objects, allowing us to easily search for specific tags and classes to extract our data.</p>
+            <p>Our first attempt is for a scraper that works for all websites. The main problem that we encounter, after fetching the HTML code, is how we can automatically find the article titles and links. We thus look for patterns in the HTML structure that indicate where these elements are located. Across the news websites considered in this work, article titles are typically embedded within hyperlink (&lt;a&gt;) tags, often enclosed by heading elements such as &lt;h2&gt; or &lt;h3&gt;, or placed inside article containers identified by characteristic classes or attributes. Although the exact HTML structure differs from one website to another, these recurring structural features provide useful cues for locating news articles while excluding navigation menus, advertisements, and other unrelated content.</p>
+            <p>To analyze the HTML and identify such patterns, we first parse the document into a tree structure that captures the hierarchy of nested tags. Then, to navigate to the article titles, we use Beautiful Soup, a Python library that allows us to search for specific tags and attributes and extract the information they contain. This enables us to automate the search for the important elements in the HTML code.</p>
 
             <h2>Filtering the Noise</h2>
-            <p>Once we can navigate the HTML, the next problem is how to separate the article titles and links from other things such as ads. Also, we need to figure out how to exclude articles of minor importance. These minor articles usually arise because modern news websites heavily utilize sidebars, "trending" carousels, and sponsored widgets to keep users engaged, which clutters the main news feed we are actually interested in.</p>
+            <p>However, not every header with hyperlink is a relevant news title. Ads can also contain text with hyperlinks, for example. Moreover, there are articles of minor importance (such as articles that only appear as related to a main one), which are better to exclude for capturing the edeitorial choices of the outlet. Other examples of such minor articles arise from sidebars, such as "trending" carousels (or "ροή ειδήσεων" sections in greek websites).</p>
+            <p>Given the different names given to their respective HTML classes (class names can contain keywords such as 'ad', 'widget', or 'carousel'), regular expressions are a natural solution. The regex package in python allows us to compile an abstract string (for example, an abstract representation for all the strings that contain the keyword "ad" in them). Thus we can exclude filter more easily for ads and minor articles, without hardcoding the exact class names to be excluded.</p>
+                        
+            <p>Since the HTML structure is quite complicated, the task of finding the patterns that indicate the presence of an article title was handed over to an LLM. Gemini Pro was essential for constructing all the following scrapers, as with a few rounds of feedback about omitted items, it was able to successfully construct them. However, before constructing any scrapers, it needed access to the HTML source code of the websites. This could only be provided manually. Therefore, the next step was to create a small script that retrieves and saves the HTML.</p>
             
-            <p>The solution to this filtering problem is using regex (regular expressions). By compiling a regex pattern, we can search for partial string matches within class names, allowing us to target relevant article containers while bypassing standard ad blocks and minor story cards. Here is our attempt at a universal scraper:</p>
-            <img src="img/post5/img7.png" alt="Attempt at a universal scraper" class="keep-dark">
 
             <h2>Fetching the HTML</h2>
-            <p>Of course, to parse the HTML and send it to our scraper, we first need to acquire it reliably. While a simple requests script works for some static pages, many of these news outlets render their content dynamically using JavaScript. To get around this, we built an HTML fetcher using Selenium to mimic a real browser, wait for the JavaScript to execute, and then extract the fully rendered HTML. This code is shown below:</p>
+            <p>The challenge in acquiring the HTML code is that most modern news outlets render their content dynamically using JavaScript. To get around this, we build an HTML fetcher using Selenium, a python library which mimics a real web browser. We wait for the JavaScript to execute, and then extract the fully rendered HTML. This code is shown below:</p>
             
-            <img src="img/post5/img8.png" alt="HTML fetcher setup" class="keep-dark">
-            <img src="img/post5/img9.png" alt="HTML fetcher execution" class="keep-dark">
+            <img src="img8.png" alt="HTML fetcher setup" class="keep-dark">
+            <img src="img9.png" alt="HTML fetcher execution" class="keep-dark">
+            <p>The following scraper was the attempted universal one, which could not be generalised enough to work for all the outlets.</p>
+            <img src="img7.png" alt="Attempt at a universal scraper" class="keep-dark">
 
             <h2>Moving to Per-Source Scrapers</h2>
             <p>Despite the regex approach, the universal scraper ultimately failed. The problem lies in the differences in where the article title is "hidden" in the HTML structure across different sites. Some sites nest the title in an h2 tag within a specific div, while others use custom article tags or bury the link inside a series of span elements. It becomes impossible to use the same scraper everywhere.</p>
 
-            <p>The solution was providing the fetched HTML to Gemini Pro and creating per-source scrapers. This involved iterative improvements of each one of the scrapers, checking edge cases, and refining the logic, which proved to be very time consuming. Here are two examples of the resulting custom scrapers:</p>
+            <p>The solution was working with the LLM to create per-source scrapers. This was a particularly time-cocsuming task, since it required various rounds of improvement. Here are two examples of the resulting custom scrapers:</p>
             
-            <img src="img/post5/img10.png" alt="Custom scraper example 1" class="keep-dark">
-            <img src="img/post5/img11.png" alt="Custom scraper example 2" class="keep-dark">
-            <img src="img/post5/img12.png" alt="Custom scraper example 3" class="keep-dark">
+            <img src="img10.png" alt="Custom scraper example 1" class="keep-dark">
+            <img src="img11.png" alt="Custom scraper example 2" class="keep-dark">
+            <img src="img12.png" alt="Custom scraper example 3" class="keep-dark">
 
-            <h2>Main Ideas</h2>
-            <p>Looking at the final custom scrapers, a common methodology emerges. Instead of trying to pinpoint the exact target immediately, we use a two-phase approach. Phase 1 involves aggressive pruning with regex, where we actively search for and decompose unwanted sections (like sidebars, carousels, and widgets). Phase 2 focuses on extraction, where we look at the remaining, cleaned HTML and anchor directly to the heading tags to extract the headlines and URLs safely.</p>
+            <p>The approach often used to construct the scrapers is the following: a first phase of processing performs aggressive pruning with regex, where we search for and decompose unwanted sections (like sidebars, carousels, and widgets). After only the more relevant contents remain, the scraper looks at the remaining HTML and anchors directly to the appropriate (for the given source) heading tags, to extract the headlines and URLs safely.</p>
 
+            <h2>Conclusion and Moving Forward</h2>
+            <p>We now have scrapers that work for the current versions of our sources' websites. With minor adjustments, they will be able to retrieve the most recent news titles from the wayback machine. Furthermore, the gained experience will allow us to successfully create scrapers for the older layouts of the websites.</p>
+            <p>The project now turns to acquiring the websites from the internet archive. Before starting to download, we must determine which snapshot we will use. In the next post, the Wayback Machine API will be used to inquire about available snapshots and an algorithmic approach will be developed to ensure that days with snapshots from all the sources are prioritised. </p>
+            </p>Some sources, which have rarer snapshots and would harm the reliability of our results, will be abandoned.</p>
         </div>
     </article>
 </div>
