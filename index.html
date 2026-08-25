@@ -8,25 +8,37 @@
 </head>
 <body>
 
+  <!-- New top navigation for the About Me link -->
+  <nav class="top-nav">
+    <a href="about_me/index.html" class="about-link">About Me</a>
+  </nav>
+
   <header class="hero">
     <h1>Welcome to my personal webpage!</h1>
     <p class="subtitle">Data Science · Mathematics</p>
   </header>
 
   <main class="container">
+    <p class="intro">
+      Select where you wish to continue:<br>
+      The <b>blog</b> or the <b>mathematics learning materials.</b>
+    </p>
+    <br>
+    <br>
 
-    <div class="card">
-      <h2>📘 Intuitive Mathematics </h2>
-      <p>1st-year Undergraduate Study Materials (only in greek for now...)<p>
-      <p>Fostering mathematical understanding; succeeding at calculus through intuition.</p>
-      <a href="math/index.html" class="btn">Explore & Learn</a>
-    </div>
-
-    <div class="card">
-      <h2>📊 Data Science</h2>
-      <p>Learn along with me!</p>
-      <p>I'll try to cover interesting topics and applications, too! :)</p>
-      <a href="data-science/index.html" class="btn">Go to the blog</a>
+    <div class="cards">
+    <!-- The entire card is now a clickable link -->
+      <a href="math/index.html" class="card">
+        <h2> 📘 Intuitive Mathematics: </h2>
+        <h3> Learning materials that help develop intuition. </h3>
+        <img src="screenshots/math.png" alt="Mathematics Materials Screenshot" class="card-img">
+      </a>
+    
+      <a href="data-science/index.html" class="card">
+        <h2>📊 Data Science Blog:</h2>
+        <h3>  Projects and Short Essays. </h3>
+        <img src="screenshots/ds.png" alt="Data Science Blog Screenshot" class="card-img">
+      </a>      
     </div>
 
   </main>
@@ -34,6 +46,8 @@
   <footer>
     <p>© 2026</p>
   </footer>
+
+  <script src="transition.js"></script>
 
 </body>
 </html>
