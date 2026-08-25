@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>About Me - Markos Theocharis Kremmydas</title>
+  <!-- Link to the global stylesheet in the parent directory -->
+  <link rel="stylesheet" href="../style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <style>
+    /* Specific styling for the About page content */
+    .about-card {
+      background: #1e293b;
+      padding: 40px;
+      border-radius: 15px;
+      max-width: 750px;
+      margin: 0 auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      line-height: 1.7;
+      font-size: 1.1em;
+      color: #e2e8f0;
+    }
+    
+    .profile-img {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 30px auto;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.4);
+      /* Adds a subtle border matching your theme's muted blue */
+      border: 3px solid #64748b; 
+    }
+    
+    .greek-name {
+      display: block;
+      font-size: 0.5em; /* Makes the Greek characters smaller as requested */
+      color: #94a3b8;
+      margin-top: 10px;
+      font-weight: normal;
+    }
+    
+    .about-card p {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Reusing your top-nav styling for a back button -->
+  <nav class="top-nav">
+    <a href="../index.html" class="about-link">← Back to Home</a>
+  </nav>
+
+  <header class="hero">
+    <h1>
+      Markos Theocharis - Kremmydas
+      <span class="greek-name">(Μάρκος Θεοχάρης - Κρεμμυδάς)</span>
+    </h1>
+  </header>
+
+  <main class="container">
+    <div class="about-card">
+      
+      <!-- Profile Picture -->
+      <img src="photo.jpg" alt="Markos Theocharis Kremmydas" class="profile-img">
+
+      <!-- Content -->
+      <p>Hi! I am currently a student in the Data Science master of the University of Athens. I'm characterised by a love for deep understanding of complex ideas and an urge to share the beautiful insights that I encounter.</p>
+
+      <p>These qualities led me to a very successful completion of my undergraduate studies in Mathematics, with a GPA of 9.66/10.0. Despite my deep appreciation for theoretical mathematics, and after a year of pause in my studies, I chose to specialise in a much more impactful domain: Data Science.</p>
+
+      <p>I am currently learning about the applications of AI that help humanity the most ("AI for good", as it is often called) and I'm doing projects in such areas. I'm also sometimes concerned by developments and changes brought about by LLMs. That's when I do a deep dive on what the future might look like and write about my conclusions in an accessible way.</p>
+
+      <p>Finally, last year, I had my first experiences in teaching mathematics to undergraduate students. I may return to this activity this year if I have enough time.</p>
+      
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026</p>
+  </footer>
+
+</body>
+</html>
