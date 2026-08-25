@@ -5,6 +5,26 @@ body {
   color: #e2e8f0;
 }
 
+/* Updated styles for a more subtle About Me link */
+.top-nav {
+  position: absolute;
+  top: 25px;
+  left: 30px;
+}
+
+.about-link {
+  color: #64748b; /* Muted slate blue, matching your footer color */
+  text-decoration: underline; /* Keeps the underline */
+  text-underline-offset: 4px;
+  font-weight: normal; /* Less prominent weight */
+  font-size: 1em; /* Standard size */
+  transition: color 0.2s ease;
+}
+
+.about-link:hover {
+  color: #94a3b8; /* Slightly brighter on hover for feedback */
+}
+
 .hero {
   text-align: center;
   padding: 100px 20px 60px;
@@ -21,20 +41,32 @@ body {
 }
 
 .container {
+  padding: 40px;
+}
+
+.intro {
+  text-align: center;
+  margin: 0 0 30px 0;
+}
+
+.cards {
   display: flex;
   justify-content: center;
   gap: 30px;
-  padding: 40px;
   flex-wrap: wrap;
 }
 
+/* Updated to support <a> tag behavior */
 .card {
+  display: block;
   background: #1e293b;
   padding: 30px;
   border-radius: 15px;
   width: 300px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
   transition: transform 0.2s ease;
+  text-decoration: none; /* Removes link underline */
+  color: inherit; /* Keeps text color from parent */
 }
 
 .card:hover {
@@ -43,25 +75,40 @@ body {
 
 .card h2 {
   margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-.btn {
-  display: inline-block;
-  margin-top: 15px;
-  padding: 10px 20px;
-  background: #38bdf8;
-  color: #0f172a;
-  text-decoration: none;
+/* New styling for the screenshots */
+.card-img {
+  width: 100%;
+  height: auto;
   border-radius: 8px;
-  font-weight: bold;
-}
-
-.btn:hover {
-  background: #0ea5e9;
+  display: block;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
 
 footer {
   text-align: center;
   padding: 20px;
   color: #64748b;
+}
+
+/* --- New Transition Animation Classes --- */
+
+.transition-clone {
+  position: fixed;
+  z-index: 9999; 
+  object-fit: cover; 
+  border-radius: 8px; 
+  /* Increased duration to 0.8s and added a smoother easing curve */
+  transition: all 1s cubic-bezier(0.25, 1, 0.5, 1); 
+}
+
+.transition-expanded {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important; 
+  height: 100vh !important; 
+  border-radius: 0; 
 }
