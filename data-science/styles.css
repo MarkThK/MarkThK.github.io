@@ -109,3 +109,204 @@ pre {
   margin: 30px 0;
   box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
 }
+
+
+/* --- PROJECT BASED LAYOUT STYLES --- */
+
+.project-card {
+  margin-bottom: 40px;
+  overflow: hidden; /* Keeps the child elements inside the rounded corners */
+  padding: 0; /* Remove default padding to allow edge-to-edge elements */
+}
+
+.project-header {
+  padding: 30px;
+  background: rgba(15, 23, 42, 0.4);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.project-header h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #38bdf8;
+  font-size: 1.8em;
+}
+
+.project-header p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 1.1em;
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  text-decoration: none;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  transition: background 0.2s ease, padding-left 0.2s ease;
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-item:hover {
+  background: rgba(56, 189, 248, 0.1);
+  padding-left: 35px; /* Slight indent effect on hover */
+}
+
+.post-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.post-part {
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.post-title {
+  font-size: 1.15em;
+  font-weight: 600;
+}
+
+.post-item:hover .post-title {
+  color: #38bdf8;
+}
+
+.post-item .post-date {
+  font-size: 0.9em;
+  color: #64748b;
+  white-space: nowrap;
+  margin-left: 20px;
+}
+
+/* --- LAYOUT GRID & SIDEBAR --- */
+
+.layout-wrapper {
+  display: grid;
+  grid-template-columns: 260px 1fr; /* Sidebar is 260px, content takes remaining space */
+  gap: 40px;
+  max-width: 1100px; /* Wider to accommodate both columns */
+  margin: 0 auto;
+  padding: 0 20px 80px;
+  align-items: start;
+}
+
+/* Update your existing blog container to remove margins since the wrapper handles it */
+.blog-container {
+  max-width: 1000px; 
+  padding: 0;
+}
+
+.sidebar {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 30px;
+  position: sticky; /* Makes it follow the user as they scroll */
+  top: 30px;
+}
+
+.sidebar h3 {
+  margin-top: 0;
+  color: #38bdf8;
+  font-size: 1.4em;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  padding-bottom: 10px;
+}
+
+.filter-group {
+  margin-bottom: 25px;
+}
+
+.filter-group h4 {
+  color: #cbd5e1;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.filter-group input[type="radio"] {
+  margin-right: 8px;
+  accent-color: #38bdf8;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 10px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1em;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #38bdf8;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .layout-wrapper {
+    grid-template-columns: 1fr; /* Stacks the sidebar on top of the content for mobile */
+  }
+  .sidebar {
+    position: static;
+  }
+}
+
+/* --- CALENDAR INPUT STYLES --- */
+.date-range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.date-range label {
+  color: #94a3b8;
+  font-size: 0.95em;
+}
+
+.date-range input[type="month"] {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 0.95em;
+  width: 150px;
+}
+
+/* Adjust the calendar icon in modern browsers */
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+  cursor: pointer;
+}
+::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
