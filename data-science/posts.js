@@ -42,7 +42,7 @@ const projects = [
         link: "post5.html"
       },
       {
-        title: "Retrieving the List of Available Snapshots and Selecting which ones to Use",
+        title: "Selecting which Internet Archive Snapshots to Use",
         date: "August 2026",
         part: "Part 4",
         link: "post6.html"
