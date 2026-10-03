@@ -46,6 +46,12 @@ const projects = [
         date: "August 2026",
         part: "Part 4",
         link: "post6.html"
+      },
+      {
+        title: "Downloading and Cleaning the HTML Data",
+        date: "October 2026",
+        part: "Part 5",
+        link: "post7.html"
       }
     ]
   }
