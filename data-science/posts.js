@@ -52,6 +52,12 @@ const projects = [
         date: "October 2026",
         part: "Part 5",
         link: "post7.html"
+      },
+      {
+        title: "Detecting Layout Changes by Clustering",
+        date: "October 2026",
+        part: "Part 6",
+        link: "post8.html"
       }
     ]
   }
