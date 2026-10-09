@@ -86,21 +86,18 @@
     <article class="card">
         
         <div class="post-content">
-            <h2>Introduction &amp; Current Dataset Status</h2>
             <p>We have now downloaded the snapshots and catalogued them in a JSON file that acts as a dictionary. Failed downloads have been cleaned, where possible. The current state of the dataset is represented in the following plotly graph: (black triangles signify incomplete months, while bars show problematic snapshots for each month)</p>
 
             <div class="chart-container">
-                <iframe src="problematic_months_breakdown.html"></iframe>
+                <iframe src="img/post8/problematic_months_breakdown.html"></iframe>
             </div>
 
             <p>Since we know which data we want to use for downstream processing, it's time to create scrapers that extract the headlines (and their links) from the home pages. However, the HTML code (and the layout) of the main pages changed from time to time. Therefore, we will try to detect automatically when these layout breaks occur. This is essential not only for predicting possible silent scraper failures, but also for determining the feasibility of the rest of the project! Even with LLM assistance, creating scrapers and testing them can be a tedious process. Fortunately, the distinct layouts used in the last 12 years by the 8 sources were not too many.</p>
 
-            <h2>Measuring Layout Similarity</h2>
             <p>In order to compare the layout of different HTML files, we need a metric for "layout similarity". With such a metric, we will be able to use a clustering algorithm and hopefully the clusters will indeed correspond to the different layouts.</p>
 
             <p>A very reasonable way to go about creating this similarity metric is to compare the HTML structure of two webpages. Specifically, discard all of the uninteresting parts of the webpage (that the scraper will ignore) and then compare the parse trees left. Basically, if the sequence of html tags is similar enough, we expect that the layout has not changed in a major way and that the scraper will keep working. The problem with this approach is that we cannot just count how many tags are the same and then stop when we find the first discrepancy. A small additional chunk of code is probably insignificant, even though it creates a difference in the html tags. We need to compare chunks of the one html structure to chunks of the other html structure and see how much of each structure is contained somewhere (anywhere!) in the other one. Thus, we need to use the Levenshtein difference or a similar metric. The Levenshtein difference compares two strings (therefore we need to put the website's HTML tags in a string) and it measures how many changes (deletions, additions, replacements) it takes to convert one string to the other. However, exactly because any chunk of the one string must be compared to differently placed chunks of the other string, the computational cost is quadratic. This made the approach not run efficiently, even for a very small subset of the dataset, with only 5 webpages.</p>
 
-            <h2>Structural TF-IDF Vectorization</h2>
             <p>We thus turn to a more high-level approach, that uses statistics about the HTML tags, rather than treating each HTML tag individually during the comparison. We could simply compare how many times each tag appears in the snapshots. However, this treats all tags as equally important. Therefore tags such as &lt;div&gt;, that are very common and may change without great implications would dominate the metric. A more standardised way to give each tag the importance it deserves is the TF-IDF metric: For each tag, it measures how many times it appears in the document, but it multiplies it by one over the times that the tag appears in the whole database. Therefore, the prevalence of each tag is measured with respect to its overall prevalence.</p>
 
             <p>This provides us with a statistical encoding of a snapshot's structure. We can then make a standardised list of all the HTML tags that are present in the snapshots and calculate for every snapshot the TF-IDF score of each of these tags (for the rare tags the score will often be zero). Moreover, we can even calculate the score for pairs of consecutive tags, to better capture the structure of the website (as an example, an increase in &lt;p&gt; tags and an increase in &lt;h3&gt; tags is a very high-level metric, but an increase in &lt;h3&gt; tags followed by &lt;p&gt; tags tells us that the scraper may fail to continue locating the headlines). Now every snapshot's structural statistics are saved in standardised vectors, which can then be easily compared. The code that computes the vectors follows:</p>
@@ -115,7 +112,6 @@
     vectors = vectorizer.fit_transform(dom_strings)</code></pre>
             </div>
 
-            <h2>Agglomerative Clustering Implementation</h2>
             <p>The next step is to find an effective (for our use case) clustering algorithm. Since we do not know the number of clusters in advance, the two main options are Affinity Propagation and Agglomerative Clustering. Affinity Propagation assigns locally (for each point in the dataset) an element that can work as a "center" for its cluster. Subsequently, the local information about cluster-like structures is synthesized into a global picture, of a number of final clusters. The problem with this method is that the number of clusters we'll end up with could be unpredictable. Some small changes in the websites (that do not come close to breaking the scraper) are to be expected from time to time. We could thus end up with a way too sensitive cluster splitting and there would be no easy way to judge from a simple graph of the clusters whether the changes are actually deep enough to break a scraper.</p>
 
             <p>On the other hand, agglomerative clustering uses a much better suited approach. It compares the distances of the points and merges the two closest ones into a cluster. Once such clusters have begun to form, they can also be merged with other points (or clusters). The distance from a cluster is usually expressed as the distance from its centroid (the average of the cluster's vectors). The advantage of this method lies in that it creates the clusters step by step (and, if allowed to continue, the algorithm will merge everything into one big cluster!). Therefore, we are the ones to choose how dissimilar two clusters should be, in order to not be merged in a bigger cluster. For our use case, we use to measure the similarity (or the "distance") the cosine similarity and we expect that a scraper will fail if relatively small but significant changes in the layout happen. Given the numerical amplification of the changes that is brought about by TF-IDF, we stop merging when cosine similarity surpasses 0.2.</p>
@@ -167,19 +163,18 @@
     return labels, breaks</code></pre>
             </div>
 
-            <h2>Visualizing Layout Clusters &amp; Next Steps</h2>
             <p>Two of the plotly graphs that were created (by plotting the data along the first two principal components), were the following:</p>
 
             <div class="chart-container">
-                <iframe src="www.kathimerini.gr_layout_clusters.html"></iframe>
+                <iframe src="img/post8/www.kathimerini.gr_layout_clusters.html"></iframe>
             </div>
 
             <div class="chart-container">
-                <iframe src="www.newsbomb.gr_layout_clusters.html"></iframe>
+                <iframe src="img/post8/www.newsbomb.gr_layout_clusters.html"></iframe>
             </div>
 
             <p>(For the second graph, the clusters later proved to be correct. The clusters on the bottom right are therefore differentiated in dimensions not shown in this projection).</p>
-            
+
             <p>Now that we have a reasonable splitting of the data into different layouts, we can see that the changes did not happen too often. We may therefore proceed with the (tedious but absolutely necessary) creation of a scraper for each layout.</p>
 
         </div>
