@@ -69,8 +69,8 @@ const projects = [
       {
         title: "Is the Web Secure? What Could Change with LLMs",
         date: "October 2026",
-        part: "Short Essay (Standalone)",
-        link: "short_essay_post.html"
+        part: "Short Essay",
+        link: "shortessay1.html"
       }
     ]
   }
