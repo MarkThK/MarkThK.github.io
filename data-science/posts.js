@@ -58,12 +58,19 @@ const projects = [
         date: "October 2026",
         part: "Part 6",
         link: "post8.html"
-      },
+      }
+    ]
+  },
+  {
+    type: "Short Essay",
+    title: "The Proliferation of LLMs in Cybersecurity",
+    description: "Thoughts about upcoming changes in cyber security and the web overall.",
+    posts: [
       {
         title: "Is the Web Secure? What Could Change with LLMs",
         date: "October 2026",
-        part: "-",
-        link: "shortessay1.html"
+        part: "Short Essay (Standalone)",
+        link: "short_essay_post.html"
       }
     ]
   }
