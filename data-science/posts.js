@@ -60,9 +60,9 @@ const projects = [
         link: "post8.html"
       },
       {
-        title: "Is the Web Secure? What Cay Change with LLMs",
+        title: "Is the Web Secure? What Could Change with LLMs",
         date: "October 2026",
-        part: "-"
+        part: "-",
         link: "shortessay1.html"
       }
     ]
