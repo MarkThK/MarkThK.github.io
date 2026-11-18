@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Prism.js Dark Theme for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <!-- Prism.js Core & Python Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
+    <title>Project Completion and Results</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+    /* Modern Editor Container Box */
+    .scrollable-code {
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid #3c3c3c;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+    }
+
+    /* Target Prism's code box layout safely */
+    .scrollable-code pre[class*="language-"] {
+        margin: 0 !important;
+        padding: 15px !important;
+        max-height: 400px !important;
+        overflow-y: auto !important;
+        overflow-x: auto !important;
+        background: #1e1e1e !important;
+        font-family: 'Fira Code', 'Consolas', monospace !important;
+        font-size: 0.9em !important;
+        line-height: 1.5 !important;
+    }
+
+    /* Custom Modern Scrollbars */
+    .scrollable-code::-webkit-scrollbar,
+    .scrollable-code pre::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    .scrollable-code::-webkit-scrollbar-track,
+    .scrollable-code pre::-webkit-scrollbar-track {
+        background: #1e1e1e;
+    }
+    .scrollable-code::-webkit-scrollbar-corner,
+    .scrollable-code pre::-webkit-scrollbar-corner {
+        background: #1e1e1e;
+    }
+    .scrollable-code::-webkit-scrollbar-thumb,
+    .scrollable-code pre::-webkit-scrollbar-thumb {
+        background: #424242;
+        border-radius: 5px;
+    }
+    .scrollable-code::-webkit-scrollbar-thumb:hover,
+    .scrollable-code pre::-webkit-scrollbar-thumb:hover {
+        background: #555555;
+    }
+
+    /* Plotly Responsive Frame Container */
+    .chart-container {
+        margin: 35px 0;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        background: #ffffff;
+    }
+    .chart-container iframe {
+        display: block;
+        width: 100%;
+        height: 520px;
+        border: none;
+    }
+    .chart-container.tall iframe {
+        height: 800px;
+    }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>Project Completion and Results</h1>
+    <div class="post-meta">Scraping, repairing corrupted text, and analyzing semantic diversity across Greek news</div> 
+</div>
+
+<div class="blog-container">
+    
+    <article class="card">
+        
+        <div class="post-content">
+            <h2>Introduction and Scraping</h2>
+
+            <p>In the last post, we identified (through clustering) when layout changes occurred for each of our sources. The next step is to build a scraper that extracts the most important headlines (and their URLs) for every one of the different layouts. The predicted layout breaks were empirically validated by observing when a scraper actually stopped working and a different one was needed to continue. Most of them turned out to be correct.</p>
+
+            <p>Creating the scrapers was a particularly time-consuming process. Each one of the scrapers had to be tested and iteratively improved. A small amount of "validation" and "test" snapshots were used in order to evaluate each version of the scraper. The verification of whether a scraper performed the task correctly was done by me, since an LLM could not necessarily be trusted in identifying the 8 most prominent headlines.</p>
+
+            <p>Here is the code for one of the scrapers:</p>
+
+            <div class="scrollable-code">
+<pre class="language-python"><code class="language-python">import urllib.parse
+from bs4 import BeautifulSoup
+
+def scrape_protothema(file_path: str, max_articles: int = 8):
+    """
+    Extracts prominent articles from a local protothema.gr HTML snapshot.
+    Automatically prunes sliders, sidebars, widgets, and newspaper promos.
+    """
+    base_url = "https://www.protothema.gr/"
+    extracted_data = []
+
+    # Read the local HTML file
+    try:
+        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+            html_content = f.read()
+    except Exception as e:
+        print(f"Error reading file '{file_path}': {e}")
+        return extracted_data
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # ==========================================
+    # Phase 1: Precision Pruning
+    # ==========================================
+    unwanted_classes = [
+        'aside',       # Ροή Ειδήσεων (Sidebar feed)
+        'well',        # Διαβάζονται Τώρα (Reading now feed)
+        'outloud',     # Out loud widget
+        'games',       # Games section
+        'blogs',       # Blogs grid
+        'bannerWrp',   # Ad banners
+        'related'      # Related articles embedded inside main carousels
+    ]
+    
+    for css_class in unwanted_classes:
+        for element in soup.find_all(['aside', 'div', 'section'], class_=css_class):
+            element.decompose()
+
+    for tag in soup.find_all(['h2', 'span']):
+        if 'δημοφιλή στο internet' in tag.get_text(strip=True).lower():
+            parent_section = tag.find_parent('section')
+            if parent_section:
+                parent_section.decompose()
+
+    # ==========================================
+    # Phase 2: Extraction &amp; Filtering
+    # ==========================================
+    headings = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+    
+    # Phrases typically used to promote the print edition
+    forbidden_phrases = ["μη χάσετε", "το θέμα που κυκλοφορεί", "πρώτο θέμα"]
+    
+    for heading in headings:
+        if len(extracted_data) &gt;= max_articles:
+            break
+            
+        a_tag = heading.find('a') or heading.find_parent('a')
+        
+        if a_tag:
+            headline = heading.get_text(strip=True)
+            href = a_tag.get('href')
+            
+            # 1. Standard validity checks
+            if href and len(headline) &gt; 20 and not href.startswith('#') and 'javascript' not in href.lower():
+                
+                # 2. Filter out newspaper promotions by headline text or URL slug
+                headline_lower = headline.lower()
+                href_lower = href.lower()
+                
+                if any(phrase in headline_lower for phrase in forbidden_phrases) or 'mi-hasete' in href_lower:
+                    continue  # Skip this item entirely
+                
+                full_url = urllib.parse.urljoin(base_url, href)
+                
+                # 3. Check for duplicates before adding
+                if full_url not in [item['url'] for item in extracted_data]:
+                    extracted_data.append({'headline': headline, 'url': full_url})
+                    
+    return extracted_data</code></pre>
+            </div>
+
+            <h2>Handling Corrupted Characters and Final Steps</h2>
+
+            <p>After a scraper was created, it was the job of another script to apply it in a robust way to the relevant snapshots. The main challenge here was that some of the snapshots contained mojibake characters instead of Greek headlines. Fixing the encoding worked for most of the characters, but not for all of them. Some characters seemed to be genuinely corrupted. Therefore, we were left with incomplete words, which a human could usually make out without a problem, but a computer could not easily complete. A sophisticated approach was developed for replacing the corrupt characters. Using a BERT model was not enough, as it often did not have enough context to make a prediction. Therefore, a dictionary of common words was created (out of the words contained in clean, previously scraped headlines) and it was used to expand the easier ones of the words. For the more difficult cases, a BERT model was used.</p>
+
+            <p>The code for such a script looked like this:</p>
+
+            <div class="scrollable-code">
+<pre class="language-python"><code class="language-python">import os
+import re
+import json
+import ftfy
+import difflib
+import importlib
+import itertools
+from datetime import datetime, timedelta
+from transformers import pipeline, AutoTokenizer, AutoModelForMaskedLM
+
+
+# ==========================================
+# GLOBAL CONFIGURATION
+# ==========================================
+SNAPSHOTS_DIR = "/media/phome/T9/Projects/Relative_Bias_Diversity_Newspapers/www.protothema.gr"           # Folder containing the snapshot files
+OUTPUT_DIR = "/media/phome/T9/Projects/Relative_Bias_Diversity_Newspapers/cleaned/www.protothema.gr"    # Directory to save .txt files
+MODEL_CACHE_DIR = "/media/phome/T9/Projects/Relative_Bias_Diversity_Newspapers/greekbert_model"
+START_DATE = "2014-08-07"               # Start date (YYYY-MM-DD)
+END_DATE = "2018-03-31"                 # End date (YYYY-MM-DD) - not included in search
+EXPECTED_ARTICLES = 8                   # Expected number of headlines
+MIN_HEADLINE_LEN = 10                   # Length constraint from scraper logic
+SCRAPER_NAME = "scraper_upto_now"
+METADATA_FILE = "../../refined_dataset/wayback_snapshot_dates.json"
+SOURCE_URLS = (
+    "https://www.protothema.gr",
+)    # Source key in the metadata dictionary
+# ==========================================
+
+# Initialize the GreekBERT masked language model with local caching
+MODEL_NAME = 'nlpaueb/bert-base-greek-uncased-v1'
+
+print(f"Initializing GreekBERT model from global cache: {MODEL_CACHE_DIR} ...")
+
+# Check for the actual configuration file to ensure the model downloaded successfully
+if not os.path.exists(os.path.join(MODEL_CACHE_DIR, "config.json")):
+    print("Downloading model for the first time and saving to global cache...")
+    os.makedirs(MODEL_CACHE_DIR, exist_ok=True)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    model = AutoModelForMaskedLM.from_pretrained(MODEL_NAME)
+    tokenizer.save_pretrained(MODEL_CACHE_DIR)
+    model.save_pretrained(MODEL_CACHE_DIR)
+
+# Load the unmasker entirely from the globally cached directory
+unmasker = pipeline('fill-mask', model=MODEL_CACHE_DIR, tokenizer=MODEL_CACHE_DIR)
+
+# Dynamically import the scraper
+scraper_module = importlib.import_module(SCRAPER_NAME)
+scrape_protothema = scraper_module.scrape_protothema
+
+
+def is_valid_greek(word: str) -&gt; bool:
+    """Checks if a word consists entirely of valid Greek characters."""
+    return bool(re.fullmatch(r'[Α-Ωα-ωΆΈΉΊΌΎΏάέήίόύώϊϋΐΰ]+', word))
+
+def load_dictionaries(filepath: str):
+    """Loads the pre-compiled primary and fallback dictionaries."""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return set(data.get("primary", [])), set(data.get("fallback", []))
+    except Exception as e:
+        print(f"Error loading dictionaries: {e}")
+        return set(), set()
+
+
+def get_best_match(word: str, primary_vocab: set, fallback_vocab: set, cutoff: float) -&gt; tuple:
+    """Helper to find the best dictionary match and its similarity score."""
+    if not word:
+        return None, 0.0
+        
+    # Try primary corpus dictionary first
+    matches = difflib.get_close_matches(word, primary_vocab, n=1, cutoff=cutoff)
+    if not matches:
+        # Fall back to Hunspell
+        matches = difflib.get_close_matches(word, fallback_vocab, n=1, cutoff=cutoff)
+        
+    if matches:
+        best_match = matches[0]
+        # Calculate strict ratio for competitive scoring
+        score = difflib.SequenceMatcher(None, word, best_match).ratio()
+        return best_match, score
+        
+    return None, 0.0
+
+
+def is_subsequence(fragment, word):
+    """Checks if characters of fragment appear in order inside word."""
+    it = iter(word)
+    return all(c in it for c in fragment)
+
+def to_basic_greeklish(word: str) -&gt; str:
+    """A baseline mapping to check fragment subsequences against URL slugs."""
+    accents = {'ά': 'α', 'έ': 'ε', 'ή': 'η', 'ί': 'ι', 'ό': 'ο', 'ύ': 'υ', 'ώ': 'ω', 'ϊ': 'ι', 'ϋ': 'υ', 'ΐ': 'ι', 'ΰ': 'υ'}
+    clean = "".join(accents.get(c, c) for c in word.lower())
+    mapping = {'α':'a','β':'v','γ':'g','δ':'d','ε':'e','ζ':'z','η':'i','θ':'th','ι':'i','κ':'k','λ':'l','μ':'m','ν':'n','ξ':'x','ο':'o','π':'p','ρ':'r','σ':'s','ς':'s','τ':'t','υ':'y','φ':'f','χ':'ch','ψ':'ps','ω':'o'}
+    return "".join(mapping.get(c, c) for c in clean)
+
+def fix_greek_encoding(text: str, url: str, primary_vocab: set, fallback_vocab: set, reverse_lookup: dict) -&gt; str:
+    if not text:
+        return text
+        
+    # FAST EXIT: If the headline has absolutely zero mojibake bytes, return it exactly as-is.
+    if not re.search(r'[ÎÏÂÃ\x80-\xff]', text):
+        return text
+        
+    all_vocab = primary_vocab.union(fallback_vocab)
+    
+    # STEP 0: The Ultimate Healer Replacer
+    def replacer(match):
+        pair = match.group(0)
+        if len(pair) == 1: return pair
+        c1, c2 = pair[0], pair[1]
+        
+        try: c1_byte = c1.encode('latin1')
+        except:
+            try: c1_byte = c1.encode('cp1252')
+            except: c1_byte = None
+            
+        if not c1_byte: return pair
+        
+        try: c2_byte = c2.encode('latin1')
+        except:
+            try: c2_byte = c2.encode('cp1252')
+            except: c2_byte = None
+            
+        healing_guesses = [c2_byte] if c2_byte else []
+        
+        if c2 in [' ', '\xa0', '']:
+            healing_guesses.extend([b'\xa0', b'\x85', b'\x81', b'\x8d', b'\x90', b'\x83', b'\x84', b'\x82', b'\x89', b'\x8a'])
+        elif c2 in ['"', '”', '“']:
+            healing_guesses.extend([b'\x84', b'\x93', b'\x94'])
+        elif c2 in ["'", '‘', '’', '´', ',', '‚']:
+            healing_guesses.extend([b'\x82', b'\x91', b'\x92', b'\xb4'])
+        elif c2 == '-':
+            healing_guesses.extend([b'\x96', b'\x97'])
+        elif c2 == '…':
+            healing_guesses.append(b'\x85')
+        elif c2 == '„':
+            healing_guesses.append(b'\x84')
+            
+        for guess in healing_guesses:
+            if not guess: continue
+            try:
+                decoded = (c1_byte + guess).decode('utf-8')
+                if re.match(r'^[Α-Ωα-ωΆΈΉΊΌΎΏάέήίόύώϊϋΐΰ]+$', decoded):
+                    return decoded
+            except Exception:
+                pass
+                
+        return pair
+
+    decoded_text = re.sub(r'[ÎÏÂÃ].', replacer, text)
+    clean_text = re.sub(r'[ÎÏÂÃ\x80-\xff]', '', decoded_text)
+    clean_text = re.sub(r'([α-ωάέήίόύώϊϋΐΰ])([Α-ΩΆΈΉΊΌΎΏ])', r'\1 \2', clean_text)
+    
+    raw_tokens = clean_text.split()
+    orig_tokens = text.split()
+    tokens = [] # Will store tuples of (word_string, has_mojibake_flag)
+    
+    prefixes = ['που', 'θα', 'να', 'με', 'σε', 'για', 'και', 'δεν', 'μην']
+    suffixes = ['στο', 'στη', 'στον', 'στην', 'στα', 'του', 'της', 'τον', 'την', 'των']
+    
+    for i, word in enumerate(raw_tokens):
+        orig = orig_tokens[i] if i &lt; len(orig_tokens) else word
+        # Track corruption status BEFORE the Un-gluer splits anything
+        has_mojibake = bool(re.search(r'[ÎÏÂÃ\x80-\xff]', orig))
+        
+        clean = re.sub(r'^[\W_]+|[\W_]+$', '', word)
+        if clean and clean.lower() not in all_vocab:
+            glued = False
+            
+            for pref in prefixes:
+                if clean.lower().startswith(pref) and len(clean) &gt;= len(pref) + 3:
+                    base = clean[len(pref):]
+                    if base.lower() in all_vocab or base[0].isupper():
+                        prep_pattern = re.compile(f"^{pref}", re.IGNORECASE)
+                        match = prep_pattern.search(word)
+                        if match:
+                            split_idx = match.end()
+                            # Inherit the mojibake flag to the split pieces safely
+                            tokens.extend([(word[:split_idx], has_mojibake), (word[split_idx:], has_mojibake)])
+                            glued = True
+                            break
+            if glued: continue
+                
+            for suf in suffixes:
+                if clean.lower().endswith(suf) and len(clean) &gt;= len(suf) + 3:
+                    base = clean[:-len(suf)]
+                    if base.lower() in all_vocab or base[0].isupper() or len(base) &gt;= 5:
+                        prep_pattern = re.compile(f"{suf}$", re.IGNORECASE)
+                        match = prep_pattern.search(word)
+                        if match:
+                            split_idx = match.start()
+                            tokens.extend([(word[:split_idx], has_mojibake), (word[split_idx:], has_mojibake)])
+                            glued = True
+                            break
+                            
+            if not glued: tokens.append((word, has_mojibake))
+        else:
+            tokens.append((word, has_mojibake))
+            
+    url_slug_match = re.search(r'/([^/]+)$', url)
+    slug_tokens = re.findall(r'[a-z0-9]+', url_slug_match.group(1)) if url_slug_match else []
+    
+    # Extract just the text strings for the BERT sentence context
+    repaired_tokens = [t[0] for t in tokens]
+    
+    for i, (word, had_mojibake) in enumerate(tokens):
+        clean_word = re.sub(r'^[\W_]+|[\W_]+$', '', word)
+        surviving_fragment = "".join(re.findall(r'[Α-Ωα-ωΆΈΉΊΌΎΏάέήίόύώϊϋΐΰ]+', clean_word))
+        
+        if not clean_word or not surviving_fragment:
+            continue
+            
+        # If the word never had mojibake, do NOT run it through the hallucination engine, 
+        # even if it isn't in the dictionary (protects healthy rare names).
+        if not had_mojibake:
+            continue
+            
+        best_match = None
+        frag_gl = to_basic_greeklish(surviving_fragment)
+        surviving_lower = surviving_fragment.lower()
+        
+        matched_idx = -1
+        for j, slug in enumerate(slug_tokens):
+            if is_subsequence(frag_gl, slug):
+                matched_idx = j
+                break
+                
+        if matched_idx != -1:
+            matched_slug = slug_tokens.pop(matched_idx)
+            if matched_slug in reverse_lookup:
+                candidates = reverse_lookup[matched_slug]
+                for cand in candidates:
+                    if is_subsequence(surviving_lower, cand.lower()):
+                        best_match = cand
+                        break
+                    
+        if not best_match:
+            masked_tokens = repaired_tokens.copy()
+            masked_tokens[i] = "[MASK]"
+            masked_sentence = " ".join(masked_tokens)
+            try:
+                predictions = unmasker(masked_sentence, top_k=30)
+                for pred in predictions:
+                    candidate_str = pred['token_str']
+                    if not candidate_str.startswith("##") and candidate_str.lower() in all_vocab and is_subsequence(surviving_lower, candidate_str.lower()):
+                        best_match = candidate_str
+                        break
+            except Exception:
+                pass
+                
+        if not best_match:
+            valid_cands = [cand for cand in all_vocab if cand.lower().startswith(surviving_lower[0]) and is_subsequence(surviving_lower, cand.lower())]
+            if valid_cands:
+                best_match = min(valid_cands, key=len)
+                        
+        if best_match:
+            if surviving_fragment.isupper() and len(surviving_fragment) &gt; 1:
+                best_match = best_match.upper()
+            elif surviving_fragment[0].isupper():
+                best_match = best_match.capitalize()
+            else:
+                best_match = best_match.lower()
+                
+            prefix_match = re.match(r'^([\W_]*)', word)
+            suffix_match = re.search(r'([\W_]*)$', word)
+            prefix = prefix_match.group(1) if prefix_match else ""
+            suffix = suffix_match.group(1) if suffix_match else ""
+            repaired_tokens[i] = f"{prefix}{best_match}{suffix}"
+            
+    return " ".join(repaired_tokens)
+
+
+def validate_extraction(extracted_data, expected_count=8):
+    """
+    Performs integrity checks on extracted headline data.
+    Returns (is_valid: bool, reason: str).
+    """
+    if len(extracted_data) &lt; expected_count:
+        return False, f"Incomplete count: expected {expected_count}, found {len(extracted_data)}"
+
+    # 1. Check length and URLs FIRST
+    for idx, item in enumerate(extracted_data):
+        if len(item['headline']) &lt; MIN_HEADLINE_LEN:
+            return False, f"Article {idx + 1} headline is too short (&lt; {MIN_HEADLINE_LEN} chars): '{item['headline']}'"
+        if not item['url'].startswith("http"):
+            return False, f"Article {idx + 1} has an invalid URL schema: {item['url']}"
+
+    # 2. Check for duplicates SECOND
+    headlines = [item['headline'] for item in extracted_data]
+    if len(headlines) != len(set(headlines)):
+        # Identify the exact duplicate for the error log
+        seen = set()
+        for h in headlines:
+            if h in seen:
+                return False, f"Duplicate headline detected: '{h}'"
+            seen.add(h)
+
+    return True, "Passed"
+
+def parse_snapshot_timestamp(filename):
+    """
+    Extracts the full datetime (Year, Month, Day, Hour, Minute, Second) 
+    from the 14-digit Wayback Machine filename format.
+    """
+    match = re.match(r"^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})", filename)
+    if not match:
+        return None
+    try:
+        year, month, day, hour, minute, second = map(int, match.groups())
+        return datetime(year, month, day, hour, minute, second)
+    except ValueError:
+        return None
+
+def get_success_intervals(results):
+    """
+    Groups a chronological list of (datetime, is_success) tuples into intervals.
+    An interval is only broken by a failed snapshot.
+    """
+    if not results:
+        return []
+        
+    intervals = []
+    start_date = None
+    last_success_date = None
+    
+    for dt, is_success in results:
+        if is_success:
+            if start_date is None:
+                start_date = dt
+            last_success_date = dt
+        else:
+            if start_date is not None:
+                intervals.append((start_date, last_success_date))
+                start_date = None
+                last_success_date = None
+                
+    if start_date is not None:
+        intervals.append((start_date, last_success_date))
+        
+    interval_strs = []
+    for s, e in intervals:
+        s_str = s.strftime('%Y-%m-%d')
+        e_str = e.strftime('%Y-%m-%d')
+        if s_str == e_str:
+            interval_strs.append(s_str)
+        else:
+            interval_strs.append(f"{s_str} to {e_str}")
+            
+    return interval_strs
+
+def load_metadata():
+    """Loads the Wayback snapshot metadata JSON if available."""
+    if os.path.exists(METADATA_FILE):
+        with open(METADATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    print(f"Warning: Metadata file not found at {METADATA_FILE}")
+    return {}
+
+def should_skip_snapshot(file_dt, metadata):
+    """
+    Checks the metadata dictionary for failure flags for this snapshot across
+    all configured SOURCE_URLS.
+    Matches the file's exact date and time against the downloaded 'timestamp' in the JSON.
+    """
+    file_datetime_str = file_dt.strftime("%Y-%m-%d %H:%M:%S")
+    
+    found_in_metadata = False
+    is_valid_somewhere = False
+
+    for month_key, days_list in metadata.items():
+        for day_entry in days_list:
+            snapshots_dict = day_entry.get("snapshots", {})
+            
+            # Scan through all candidate domains used by ERT over time
+            for domain_url in SOURCE_URLS:
+                source_data = snapshots_dict.get(domain_url)
+                if not source_data:
+                    continue
+                
+                if source_data.get("timestamp", "") == file_datetime_str:
+                    found_in_metadata = True
+                    
+                    # Check physical integrity AND dataset completeness flags
+                    is_downloaded = source_data.get("is_downloaded")
+                    is_corrupt = source_data.get("is_corrupt")
+                    month_incomplete = day_entry.get("month_incomplete", False)
+                    source_incomplete = source_data.get("source_incomplete_for_month", False)
+                    
+                    # It is only valid if ALL conditions are met
+                    if (is_downloaded is True and 
+                        is_corrupt is False and 
+                        month_incomplete is False and 
+                        source_incomplete is False):
+                        is_valid_somewhere = True
+                        break # Found valid entry for this day
+
+    # If it's not in the metadata at all, skip it
+    if not found_in_metadata:
+        print("not in metadata")
+        return True
+        
+    # If it was found but NEVER satisfied all validity conditions, skip it
+    if not is_valid_somewhere:
+        print("corrupt, not on disk, or belongs to an incomplete month/source")
+        return True
+
+    # The file is in the metadata, downloaded, not corrupt, AND belongs to a complete month
+    return False
+
+def run_batch_processor():
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    start_dt = datetime.strptime(START_DATE, "%Y-%m-%d")
+    end_dt = datetime.strptime(END_DATE, "%Y-%m-%d")
+
+    if not os.path.exists(SNAPSHOTS_DIR):
+        print(f"Snapshots folder not found: {SNAPSHOTS_DIR}")
+        return
+
+    # Load metadata 
+    metadata = load_metadata()
+    
+    # Load the dictionaries explicitly here
+    primary_vocab, fallback_vocab = load_dictionaries("greek_vocabularies.json")
+    
+    # BUILD REVERSE LOOKUP (Greeklish -&gt; Correct Greek Word)
+    # We do this once to avoid massive overhead during the loop
+    reverse_lookup = {}
+    for word in primary_vocab.union(fallback_vocab):
+        accents = {'ά': 'α', 'έ': 'ε', 'ή': 'η', 'ί': 'ι', 'ό': 'ο', 'ύ': 'υ', 'ώ': 'ω', 'ϊ': 'ι', 'ϋ': 'υ', 'ΐ': 'ι', 'ΰ': 'υ'}
+        clean = "".join(accents.get(c, c) for c in word.lower())
+        
+        chars = []
+        for c in clean:
+            if c == 'χ': chars.append(['ch', 'h'])
+            elif c == 'υ': chars.append(['y', 'u'])
+            elif c == 'θ': chars.append(['th'])
+            elif c == 'ψ': chars.append(['ps'])
+            elif c == 'ξ': chars.append(['x'])
+            elif c == 'ς' or c == 'σ': chars.append(['s'])
+            else:
+                mapping = {'α':'a','β':'v','γ':'g','δ':'d','ε':'e','ζ':'z','η':'i','ι':'i','κ':'k','λ':'l','μ':'m','ν':'n','ο':'o','π':'p','ρ':'r','τ':'t','φ':'f','ω':'o'}
+                chars.append([mapping.get(c, c)])
+        
+        for combo in itertools.product(*chars):
+            gl = "".join(combo)
+            if gl not in reverse_lookup:
+                reverse_lookup[gl] = []
+            reverse_lookup[gl].append(word)
+
+    candidate_files = []
+    for fname in os.listdir(SNAPSHOTS_DIR):
+        if not fname.endswith(".html"):
+            continue
+        file_dt = parse_snapshot_timestamp(fname)
+        if file_dt and start_dt &lt;= file_dt &lt;= end_dt:
+            candidate_files.append((file_dt, fname))
+
+    candidate_files.sort(key=lambda x: x[1])
+
+    if not candidate_files:
+        print(f"No snapshot files found between {START_DATE} and {END_DATE}.")
+        return
+
+    print(f"Found {len(candidate_files)} snapshots to process.\n")
+
+    processing_results = [] 
+    layout_transitions = []  
+    
+    prev_state = None     
+    prev_file = None
+    prev_date = None
+    prev_reason = None
+
+    for file_dt, fname in candidate_files:
+        file_path = os.path.join(SNAPSHOTS_DIR, fname)
+        base_name = os.path.splitext(fname)[0]
+        out_file_path = os.path.join(OUTPUT_DIR, f"{base_name}.txt")
+
+        # METADATA CHECK: Check for corrupt/incomplete flags
+        if should_skip_snapshot(file_dt, metadata):
+            if os.path.exists(out_file_path):
+                os.remove(out_file_path)
+                print(f"[REMOVED] {fname} -&gt; Deleted TXT due to bad flags in metadata.")
+            else:
+                print(f"[IGNORED] {fname} -&gt; Skipped due to bad flags or absence in metadata.")
+            continue
+
+        # INCREMENTAL CHECK
+        if os.path.exists(out_file_path):
+            print(f"[SKIP] {fname} -&gt; Already extracted.")
+            is_valid = True
+            status_msg = "Already extracted"
+        else:
+            extracted_data = scrape_protothema(file_path=file_path, max_articles=EXPECTED_ARTICLES)
+            
+            # UPDATED: Pass the URL and reverse_lookup to the repair function
+            for item in extracted_data:
+                item['headline'] = fix_greek_encoding(
+                    item['headline'], 
+                    item['url'], 
+                    primary_vocab, 
+                    fallback_vocab, 
+                    reverse_lookup
+                )
+
+            # Validate extraction AFTER the text is fixed
+            is_valid, status_msg = validate_extraction(extracted_data, expected_count=EXPECTED_ARTICLES)
+
+            if is_valid:
+                with open(out_file_path, "w", encoding="utf-8") as out_f:
+                    for item in extracted_data:
+                        out_f.write(f"{item['headline']}\t{item['url']}\n")
+                print(f"[OK]   {fname} -&gt; Saved {len(extracted_data)} headlines.")
+            else:
+                print(f"[FAIL] {fname} -&gt; Reason: {status_msg}")
+
+        processing_results.append((file_dt, is_valid))
+
+        # TRACK LAYOUT TRANSITIONS (Backwards Perspective)
+        if prev_state is None:
+            prev_state = is_valid
+        elif prev_state != is_valid:
+            if prev_state is False and is_valid is True:
+                trans_type = "STOPS WORKING"
+            else:
+                trans_type = "STARTS WORKING"
+                
+            layout_transitions.append((prev_file, prev_date, trans_type, prev_reason))
+            prev_state = is_valid
+
+        prev_file = fname
+        prev_date = file_dt.strftime('%Y-%m-%d')
+        prev_reason = status_msg
+
+    success_intervals = get_success_intervals(processing_results)
+
+    print("\n" + "=" * 55)
+    if layout_transitions:
+        print("LAYOUT TRANSITIONS DETECTED (Backwards Perspective):")
+        for trans_file, trans_date, trans_type, trans_reason in layout_transitions:
+            print(f"  * {trans_date}: {trans_type} at {trans_file} ({trans_reason})")
+    else:
+        print("No layout transitions detected during this run.")
+    print("=" * 55)
+
+    # WRITE LOG REPORT
+    log_filename = f"report_{START_DATE}_{END_DATE}.log"
+    log_dir = os.path.join(os.getcwd(), "logs")
+    os.makedirs(log_dir, exist_ok=True) 
+    log_filepath = os.path.join(log_dir, log_filename)
+    
+    with open(log_filepath, "a", encoding="utf-8") as log_f:
+        log_f.write(f"--- Execution Log: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---\n")
+        log_f.write(f"Scraper Engine: {SCRAPER_NAME}\n")
+        log_f.write(f"Target Period : {START_DATE} to {END_DATE}\n")
+        
+        if success_intervals:
+            log_f.write("Scraper successfully processed (or previously processed) the following intervals:\n")
+            for interval in success_intervals:
+                log_f.write(f"  * {interval}\n")
+        else:
+            log_f.write("No successful extractions occurred in this period.\n")
+            
+        if layout_transitions:
+            log_f.write("Layout Transitions:\n")
+            for trans_file, trans_date, trans_type, trans_reason in layout_transitions:
+                log_f.write(f"  * {trans_date}: {trans_type} at {trans_file} ({trans_reason})\n")
+        log_f.write("\n")
+        
+    print(f"Log appended to: {log_filepath}")
+
+if __name__ == "__main__":
+    run_batch_processor()</code></pre>
+            </div>
+
+            <p>Here, the extracted headlines and links are saved in txt files. A separate script then created a large JSON file out of those txt files. Afterwards, the headlines' embeddings were computed and metrics (such as mean entropy and variance per month) were computed.</p>
+
+            <h2>Results and Conclusion</h2>
+
+            <p>The semantic embedding variance per month manages to capture statistically significant trends. However, it acts mainly as a metric of how major the captured events of that month are. If a major event (such as a crisis or a tragedy) happens, it is reported by all the media, thus lowering the variance. This interpretation of the variance can be clearly validated from the drop in semantic diversity during the years of the financial crisis and the first years of the pandemic. After the end of the pandemic, the variance reached its highest point, owing presumably to the reported events being less extreme. Two graphs of the variance over time (with and without some of the most important events between 2014 and 2026) are shared below:</p>
+
+            <div class="chart-container">
+                <iframe src="img/post9/plot_2_variance_only.html"></iframe>
+            </div>
+
+            <div class="chart-container tall">
+                <iframe src="img/post9/plot_2_variance_annotated-v2.html"></iframe>
+            </div>
+
+        </div>
+    </article>
+</div>
+
+</body>
+</html>
