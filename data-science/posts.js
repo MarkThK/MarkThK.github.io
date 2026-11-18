@@ -58,6 +58,12 @@ const projects = [
         date: "October 2026",
         part: "Part 6",
         link: "post8.html"
+      },
+      {
+        title: "Last Steps and Results",
+        date: "November 2026",
+        part: "Part 7",
+        link: "post9.html"
       }
     ]
   },
